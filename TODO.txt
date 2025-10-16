@@ -1,0 +1,5 @@
+Controllare profondità del crawler                  [OK]
+Controllare duplicati                               [OK]
+Non andare in profondità in header, footer          [OK]
+Link rotti
+Controllare download file (PDF...)
