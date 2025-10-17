@@ -3,6 +3,8 @@ Controllare duplicati
 Non andare in profondità in header, footer
 Link rotti
 Controllare crawler per link non html
+Controllare dropdown
 
 Controllare download file (PDF...)
-Controllare dropdown con playwright
+Controllare uscita dal sito (?)
+

@@ -1,5 +1,4 @@
 import scrapy
-from scrapy_playwright.page import PageMethod
 import json
 from urllib.parse import urlparse, urljoin
 
@@ -7,18 +6,9 @@ class SiteMapSpider(scrapy.Spider):
     name = 'sitemap_spider'
     
     custom_settings = {
-        'DOWNLOAD_HANDLERS': {
-            "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-            "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
-        },
-        'TWISTED_REACTOR': "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
         'ROBOTSTXT_OBEY': False,
-        'DEPTH_LIMIT': 3,
-        'CONCURRENT_REQUESTS': 2,
-        'PLAYWRIGHT_BROWSER_TYPE': 'chromium',
-        'PLAYWRIGHT_LAUNCH_OPTIONS': {
-            'headless': True,
-        },
+        'DEPTH_LIMIT': 5,
+        'CONCURRENT_REQUESTS': 8, 
         'HTTPCACHE_ENABLED': False,
         'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'DOWNLOAD_TIMEOUT': 30,
@@ -26,7 +16,7 @@ class SiteMapSpider(scrapy.Spider):
     
     def __init__(self, start_url=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.start_urls = [start_url] if start_url else ['https://www.comune.piedimulera.vb.it/it-it/amministrazione/amministrazione-trasparente']
+        self.start_urls = [start_url] if start_url else ['https://comune.domodossola.vb.it/amm_trasp/']
         self.allowed_domain = urlparse(self.start_urls[0]).netloc
         self.visited_urls = set()
         self.site_tree = {}
@@ -37,10 +27,6 @@ class SiteMapSpider(scrapy.Spider):
                 url,
                 callback=self.parse,
                 meta={
-                    'playwright': True,
-                    'playwright_page_methods': [
-                        PageMethod('wait_for_load_state', 'domcontentloaded'),
-                    ],
                     'depth': 0,
                     'parent_url': None
                 },
@@ -77,33 +63,27 @@ class SiteMapSpider(scrapy.Spider):
             if parent_url in self.site_tree and current_url not in self.site_tree[parent_url]['children']:
                 self.site_tree[parent_url]['children'].append(current_url)
 
-        # Gestione dropdown
+        # Gestione dropdown Bootstrap (statici)
         dropdown_menus = response.css('.dropdown-menu')
         
         if dropdown_menus:
             for dropdown in dropdown_menus:
-                # Ottieni tutti i link del dropdown
                 dropdown_links = dropdown.css('a.dropdown-item::attr(href)').getall()
                 dropdown_texts = dropdown.css('a.dropdown-item::text').getall()
                 
-                # Verifica se contiene anni (pattern: 2000-2030)
                 is_year_dropdown = any(
                     text.strip().isdigit() and 2000 <= int(text.strip()) <= 2030
                     for text in dropdown_texts
                 )
                 
                 if is_year_dropdown and len(dropdown_links) > 1:
-                    self.logger.info(f'🔍 Trovato dropdown Bootstrap con {len(dropdown_links)} anni su {current_url}')
+                    #self.logger.info(f'🔍 Trovato dropdown Bootstrap con {len(dropdown_links)} anni su {current_url}')
                     self.site_tree[current_url]['is_dynamic'] = True
                     
-                    # Processa ogni link del dropdown
                     for link, text in zip(dropdown_links, dropdown_texts):
                         year = text.strip()
-                        absolute_url = urljoin(current_url, link)
-                        # Mantieni il fragment (#2024) ma rimuovi query params
-                        absolute_url = absolute_url.split('?')[0]
+                        absolute_url = urljoin(current_url, link).split('?')[0]
                         
-                        # Crea nodo per questa vista anno
                         if absolute_url not in self.site_tree:
                             display_name = f"{self.site_tree[current_url]['display_name']}-{year}"
                             
@@ -119,23 +99,17 @@ class SiteMapSpider(scrapy.Spider):
                                 'dynamic_label': year
                             }
                             
-                            # Aggiungi come child del nodo base
                             if absolute_url not in self.site_tree[current_url]['children']:
                                 self.site_tree[current_url]['children'].append(absolute_url)
                             
-                            self.logger.info(f'   📅 Trovato anno: {year} → {absolute_url}')
+                            #self.logger.info(f'   📅 Trovato anno: {year} → {absolute_url}')
                             
-                            # Segui il link per scrapare i contenuti di quell'anno
                             if absolute_url not in self.visited_urls:
                                 yield scrapy.Request(
                                     absolute_url,
                                     callback=self.parse,
                                     errback=self.errback_httpbin,
                                     meta={
-                                        'playwright': True,
-                                        'playwright_page_methods': [
-                                            PageMethod('wait_for_load_state', 'domcontentloaded'),
-                                        ],
                                         'parent_url': current_url,
                                         'depth': response.meta.get('depth', 0) + 1
                                     }
@@ -145,7 +119,7 @@ class SiteMapSpider(scrapy.Spider):
         excluded_sections = [
             'header', 'footer', '#header-nav', '#footer-main',
             '#header-top', '#header-main', '#side-nav', '.Megamenu', '.cookiebar',
-            '.dropdown-menu'  # ✅ Escludi i dropdown già processati sopra
+            '.dropdown-menu'
         ]
         
         selector = ' '.join(f':not({section})' for section in excluded_sections)
@@ -226,10 +200,6 @@ class SiteMapSpider(scrapy.Spider):
                             callback=self.parse,
                             errback=self.errback_httpbin,
                             meta={
-                                'playwright': True,
-                                'playwright_page_methods': [
-                                    PageMethod('wait_for_load_state', 'domcontentloaded'),
-                                ],
                                 'parent_url': current_url,
                                 'depth': response.meta.get('depth', 0) + 1
                             }
@@ -238,7 +208,6 @@ class SiteMapSpider(scrapy.Spider):
                 self.logger.error(f'❌ Errore processando link {link}: {str(e)}')
 
     def errback_httpbin(self, failure):
-        """Gestisce gli errori HTTP (link rotti)"""
         request = failure.request
         url = request.url
         parent_url = request.meta.get('parent_url')
