@@ -14,7 +14,7 @@ class SiteMapSpider(scrapy.Spider):
         'TWISTED_REACTOR': "twisted.internet.asyncioreactor.AsyncioSelectorReactor",
         'ROBOTSTXT_OBEY': False,
         'DEPTH_LIMIT': 3,
-        'CONCURRENT_REQUESTS': 2,  # Ridotto con Playwright
+        'CONCURRENT_REQUESTS': 2,
         'PLAYWRIGHT_BROWSER_TYPE': 'chromium',
         'PLAYWRIGHT_LAUNCH_OPTIONS': {
             'headless': True,
@@ -51,8 +51,6 @@ class SiteMapSpider(scrapy.Spider):
     def parse(self, response):
         current_url = response.url.split('?')[0].split('#')[0]
         
-        #self.logger.info(f'✅ Parsing riuscito: {current_url} (status: {response.status})')
-        
         # Marca come visitato
         self.visited_urls.add(current_url)
         
@@ -79,18 +77,79 @@ class SiteMapSpider(scrapy.Spider):
             if parent_url in self.site_tree and current_url not in self.site_tree[parent_url]['children']:
                 self.site_tree[parent_url]['children'].append(current_url)
 
-        # ============================================
-        # SCRAPING NORMALE
-        # ============================================
+        # Gestione dropdown
+        dropdown_menus = response.css('.dropdown-menu')
+        
+        if dropdown_menus:
+            for dropdown in dropdown_menus:
+                # Ottieni tutti i link del dropdown
+                dropdown_links = dropdown.css('a.dropdown-item::attr(href)').getall()
+                dropdown_texts = dropdown.css('a.dropdown-item::text').getall()
+                
+                # Verifica se contiene anni (pattern: 2000-2030)
+                is_year_dropdown = any(
+                    text.strip().isdigit() and 2000 <= int(text.strip()) <= 2030
+                    for text in dropdown_texts
+                )
+                
+                if is_year_dropdown and len(dropdown_links) > 1:
+                    self.logger.info(f'🔍 Trovato dropdown Bootstrap con {len(dropdown_links)} anni su {current_url}')
+                    self.site_tree[current_url]['is_dynamic'] = True
+                    
+                    # Processa ogni link del dropdown
+                    for link, text in zip(dropdown_links, dropdown_texts):
+                        year = text.strip()
+                        absolute_url = urljoin(current_url, link)
+                        # Mantieni il fragment (#2024) ma rimuovi query params
+                        absolute_url = absolute_url.split('?')[0]
+                        
+                        # Crea nodo per questa vista anno
+                        if absolute_url not in self.site_tree:
+                            display_name = f"{self.site_tree[current_url]['display_name']}-{year}"
+                            
+                            self.site_tree[absolute_url] = {
+                                'parents': [current_url],
+                                'children': [],
+                                'title': f"{self.site_tree[current_url]['title']} - {year}",
+                                'depth': response.meta.get('depth', 0) + 1,
+                                'display_name': display_name,
+                                'status': 'pending',
+                                'status_code': None,
+                                'is_dynamic': True,
+                                'dynamic_label': year
+                            }
+                            
+                            # Aggiungi come child del nodo base
+                            if absolute_url not in self.site_tree[current_url]['children']:
+                                self.site_tree[current_url]['children'].append(absolute_url)
+                            
+                            self.logger.info(f'   📅 Trovato anno: {year} → {absolute_url}')
+                            
+                            # Segui il link per scrapare i contenuti di quell'anno
+                            if absolute_url not in self.visited_urls:
+                                yield scrapy.Request(
+                                    absolute_url,
+                                    callback=self.parse,
+                                    errback=self.errback_httpbin,
+                                    meta={
+                                        'playwright': True,
+                                        'playwright_page_methods': [
+                                            PageMethod('wait_for_load_state', 'domcontentloaded'),
+                                        ],
+                                        'parent_url': current_url,
+                                        'depth': response.meta.get('depth', 0) + 1
+                                    }
+                                )
+
+        # Gestione link statici
         excluded_sections = [
             'header', 'footer', '#header-nav', '#footer-main',
-            '#header-top', '#header-main', '#side-nav', '.Megamenu', '.cookiebar'
+            '#header-top', '#header-main', '#side-nav', '.Megamenu', '.cookiebar',
+            '.dropdown-menu'  # ✅ Escludi i dropdown già processati sopra
         ]
         
         selector = ' '.join(f':not({section})' for section in excluded_sections)
         main_content_links = response.css(f'#content {selector} a::attr(href)').getall()
-        
-        #self.logger.info(f'   🔗 Trovati {len(main_content_links)} link in {current_url}')
         
         excluded_extensions = [
             '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
@@ -106,29 +165,16 @@ class SiteMapSpider(scrapy.Spider):
                 parsed_url = urlparse(absolute_url)
                 
                 url_lower = absolute_url.lower()
-                
-                # Lista estensioni
-                excluded_extensions = [
-                    '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-                    '.zip', '.rar', '.7z', '.tar', '.gz',
-                    '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg', '.webp',
-                    '.mp3', '.mp4', '.avi', '.mov', '.wmv',
-                    '.xml', '.json', '.csv', '.txt'
-                ]
-                
                 download_patterns = ['/download/', '/file/', '/attachment/', '/documento/']
                 
                 is_downloadable = (
-                    any(url_lower.endswith(ext) for ext in excluded_extensions) or  # Estensione
-                    any(pattern in url_lower for pattern in download_patterns) or   # Pattern URL
-                    'pdf' in url_lower or 'doc' in url_lower  # Keyword nel nome
+                    any(url_lower.endswith(ext) for ext in excluded_extensions) or
+                    any(pattern in url_lower for pattern in download_patterns) or
+                    'pdf' in url_lower or 'doc' in url_lower
                 )
                 
                 if is_downloadable:
-                    self.logger.debug(f'      📄 Saltato file scaricabile: {absolute_url}')
-                    
                     if absolute_url not in self.site_tree:
-                        # Determina il tipo dal nome o dall'estensione
                         file_type = 'unknown'
                         for ext in excluded_extensions:
                             if ext in url_lower:
@@ -146,15 +192,13 @@ class SiteMapSpider(scrapy.Spider):
                             'file_type': file_type
                         }
                     
-                    # Aggiungi come child del nodo corrente
                     if absolute_url not in self.site_tree[current_url]['children']:
                         self.site_tree[current_url]['children'].append(absolute_url)
                     
-                    # Aggiungi parent al file
                     if current_url not in self.site_tree[absolute_url]['parents']:
                         self.site_tree[absolute_url]['parents'].append(current_url)
                     
-                    continue 
+                    continue
                 
                 if (parsed_url.netloc == self.allowed_domain and
                     parsed_url.scheme in ['http', 'https']):
@@ -176,9 +220,7 @@ class SiteMapSpider(scrapy.Spider):
                     if current_url not in self.site_tree[absolute_url]['parents']:
                         self.site_tree[absolute_url]['parents'].append(current_url)
 
-                    # Segui solo se non visitato
                     if absolute_url not in self.visited_urls:
-                        #self.logger.debug(f'      ➡️  Seguendo: {absolute_url}')
                         yield scrapy.Request(
                             absolute_url,
                             callback=self.parse,
@@ -230,7 +272,7 @@ class SiteMapSpider(scrapy.Spider):
         broken_count = sum(1 for v in cleaned_tree.values() if v.get('status') == 'broken')
         pending_count = sum(1 for v in cleaned_tree.values() if v.get('status') == 'pending')
         dynamic_count = sum(1 for v in cleaned_tree.values() if v.get('is_dynamic'))
-        file_count = sum(1 for v in cleaned_tree.values() if v.get('status') == 'file')  # ✅ NUOVO
+        file_count = sum(1 for v in cleaned_tree.values() if v.get('status') == 'file')
         
         output_path = 'site_tree.json'
         with open(output_path, 'w', encoding='utf-8') as f:
