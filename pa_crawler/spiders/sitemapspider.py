@@ -1,6 +1,10 @@
 import scrapy
 import json
 from urllib.parse import urlparse, urljoin
+from scrapy_selenium import SeleniumRequest
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 class SiteMapSpider(scrapy.Spider):
     name = 'sitemap_spider'
@@ -8,10 +12,20 @@ class SiteMapSpider(scrapy.Spider):
     custom_settings = {
         'ROBOTSTXT_OBEY': False,
         'DEPTH_LIMIT': 5,
-        'CONCURRENT_REQUESTS': 8, 
+        'CONCURRENT_REQUESTS': 8,
         'HTTPCACHE_ENABLED': False,
-        'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'DOWNLOAD_TIMEOUT': 30,
+        'DOWNLOADER_MIDDLEWARES': {
+            'scrapy_selenium.SeleniumMiddleware': 800
+        },
+        'SELENIUM_DRIVER_NAME': 'chrome',
+        'SELENIUM_DRIVER_ARGUMENTS': [
+            '--headless',
+            '--no-sandbox', 
+            '--disable-dev-shm-usage',
+            '--disable-blink-features=AutomationControlled'
+        ]
     }
     
     def __init__(self, start_url=None, *args, **kwargs):
@@ -23,19 +37,22 @@ class SiteMapSpider(scrapy.Spider):
 
     def start_requests(self):
         for url in self.start_urls:
-            yield scrapy.Request(
-                url,
+            yield SeleniumRequest(
+                url=url,
                 callback=self.parse,
-                meta={
-                    'depth': 0,
-                    'parent_url': None
-                },
-                errback=self.errback_httpbin,
-                dont_filter=True
+                wait_time=10,
+                wait_until=EC.presence_of_element_located((By.CSS_SELECTOR, 'a'))
             )
 
     def parse(self, response):
         current_url = response.url.split('?')[0].split('#')[0]
+
+        #DEBUG
+        all_links = response.css('a::attr(href)').getall()
+        content_links = response.css('#content a::attr(href)').getall()
+        #self.logger.info(f'  Pagina: {current_url}')
+        #self.logger.info(f'  Link totali: {len(all_links)}')
+        #self.logger.info(f'  Link in #content: {len(content_links)}')
         
         # Marca come visitato
         self.visited_urls.add(current_url)
@@ -105,10 +122,12 @@ class SiteMapSpider(scrapy.Spider):
                             #self.logger.info(f'   📅 Trovato anno: {year} → {absolute_url}')
                             
                             if absolute_url not in self.visited_urls:
-                                yield scrapy.Request(
-                                    absolute_url,
+                                yield SeleniumRequest(
+                                    url=absolute_url,
                                     callback=self.parse,
                                     errback=self.errback_httpbin,
+                                    wait_time=5,
+                                    wait_until=EC.presence_of_element_located((By.CSS_SELECTOR, 'a')),
                                     meta={
                                         'parent_url': current_url,
                                         'depth': response.meta.get('depth', 0) + 1
@@ -121,9 +140,18 @@ class SiteMapSpider(scrapy.Spider):
             '#header-top', '#header-main', '#side-nav', '.Megamenu', '.cookiebar',
             '.dropdown-menu'
         ]
-        
-        selector = ' '.join(f':not({section})' for section in excluded_sections)
-        main_content_links = response.css(f'#content {selector} a::attr(href)').getall()
+
+        if content_links:
+            # Se trova link in #content, usa quelli
+            selector = ' '.join(f':not({section})' for section in excluded_sections)
+            main_content_links = response.css(f'#content {selector} a::attr(href)').getall()
+        else:
+            # Altrimenti usa tutti i link escludendo header/footer
+            self.logger.warning('  #content vuoto, uso tutti i link (esclusi header/footer)')
+            selector = ' '.join(f':not({section})' for section in excluded_sections)
+            main_content_links = response.css(f'{selector} a::attr(href)').getall()
+
+        self.logger.info(f'  Link da processare: {len(main_content_links)}')
         
         excluded_extensions = [
             '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
@@ -133,20 +161,27 @@ class SiteMapSpider(scrapy.Spider):
             '.xml', '.json', '.csv', '.txt'
         ]
         
+        links_to_follow = 0
         for link in main_content_links:
             try:
                 absolute_url = urljoin(response.url, link).split('?')[0].split('#')[0]
                 parsed_url = urlparse(absolute_url)
-                
                 url_lower = absolute_url.lower()
-                download_patterns = ['/download/', '/file/', '/attachment/', '/documento/']
                 
+                download_patterns = ['/download/', '/file/', '/attachment/', '/documento/']
                 is_downloadable = (
                     any(url_lower.endswith(ext) for ext in excluded_extensions) or
                     any(pattern in url_lower for pattern in download_patterns) or
                     'pdf' in url_lower or 'doc' in url_lower
                 )
                 
+                # Debug
+                self.logger.debug(f'🔍 Analizzo: {absolute_url}')
+                self.logger.debug(f'   - Dominio OK: {parsed_url.netloc == self.allowed_domain}')
+                self.logger.debug(f'   - Già visitato: {absolute_url in self.visited_urls}')
+                self.logger.debug(f'   - File scaricabile: {is_downloadable}')
+                
+                # Gestione file scaricabili
                 if is_downloadable:
                     if absolute_url not in self.site_tree:
                         file_type = 'unknown'
@@ -168,21 +203,20 @@ class SiteMapSpider(scrapy.Spider):
                     
                     if absolute_url not in self.site_tree[current_url]['children']:
                         self.site_tree[current_url]['children'].append(absolute_url)
-                    
                     if current_url not in self.site_tree[absolute_url]['parents']:
                         self.site_tree[absolute_url]['parents'].append(current_url)
-                    
                     continue
                 
+                # Link normali dello stesso dominio
                 if (parsed_url.netloc == self.allowed_domain and
                     parsed_url.scheme in ['http', 'https']):
                     
                     if absolute_url not in self.site_tree[current_url]['children']:
                         self.site_tree[current_url]['children'].append(absolute_url)
-
+                    
                     if absolute_url not in self.site_tree:
                         self.site_tree[absolute_url] = {
-                            'parents': [],
+                            'parents': [current_url],
                             'children': [],
                             'title': None,
                             'depth': response.meta.get('depth', 0) + 1,
@@ -190,29 +224,35 @@ class SiteMapSpider(scrapy.Spider):
                             'status': 'pending',
                             'status_code': None
                         }
+                    else:
+                        if current_url not in self.site_tree[absolute_url]['parents']:
+                            self.site_tree[absolute_url]['parents'].append(current_url)
                     
-                    if current_url not in self.site_tree[absolute_url]['parents']:
-                        self.site_tree[absolute_url]['parents'].append(current_url)
-
                     if absolute_url not in self.visited_urls:
-                        yield scrapy.Request(
-                            absolute_url,
+                        links_to_follow += 1
+                        yield SeleniumRequest(
+                            url=absolute_url,
                             callback=self.parse,
                             errback=self.errback_httpbin,
+                            wait_time=5,
+                            wait_until=EC.presence_of_element_located((By.CSS_SELECTOR, 'a')),
                             meta={
                                 'parent_url': current_url,
                                 'depth': response.meta.get('depth', 0) + 1
                             }
                         )
+            
             except Exception as e:
-                self.logger.error(f'❌ Errore processando link {link}: {str(e)}')
+                self.logger.error(f'  ERRORE processando link {link}: {str(e)}')
+
+        self.logger.info(f'  Totale richieste generate: {links_to_follow}')
 
     def errback_httpbin(self, failure):
         request = failure.request
         url = request.url
         parent_url = request.meta.get('parent_url')
         
-        self.logger.error(f'❌ ERRORE su {url}: {type(failure.value).__name__}: {str(failure.value)}')
+        self.logger.error(f'  ERRORE su {url}: {type(failure.value).__name__}: {str(failure.value)}')
         
         if url not in self.site_tree:
             self.site_tree[url] = {
@@ -243,7 +283,7 @@ class SiteMapSpider(scrapy.Spider):
         dynamic_count = sum(1 for v in cleaned_tree.values() if v.get('is_dynamic'))
         file_count = sum(1 for v in cleaned_tree.values() if v.get('status') == 'file')
         
-        output_path = 'site_tree.json'
+        output_path = '/output/site_tree.json'
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump({
                 'tree': cleaned_tree,

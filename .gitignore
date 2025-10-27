@@ -1,1 +1,17 @@
-force_directed_graph.html
+# Python
+__pycache__/
+*.pyc
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Driver Selenium
+.driver/
+
+# Scrapy
+.scrapy/
+
+# IDE
+.vscode/
