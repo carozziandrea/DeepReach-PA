@@ -1,4 +1,4 @@
-# 🔎 Costruzione Automatica di Sovrastrutture Logiche per la Trasparenza nei Siti della Pubblica Amministrazione
+# Costruzione Automatica di Sovrastrutture Logiche per la Trasparenza nei Siti della Pubblica Amministrazione
 
 **Autore:** Andrea Carozzi (Matricola: 896142)
 
