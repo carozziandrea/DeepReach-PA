@@ -8,3 +8,5 @@ Controllare dropdown
 Controllare download file (PDF...)
 Controllare uscita dal sito (?)
 
+Colore nodi: tipo di pagina o distanza?
+

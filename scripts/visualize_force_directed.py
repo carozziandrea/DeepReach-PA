@@ -93,25 +93,26 @@ class NodeStyler:
     @classmethod
     def format_tooltip(cls, node: str, node_data: dict, node_type: str, degree: int) -> str:
         status_code = node_data.get('status_code', 'N/A')
+        distance = node_data.get('distance', 0)
         
         if node_type == 'start':
-            return f"🏠 PAGINA INIZIALE\nURL: {node}\nConnessioni: {degree}"
+            return f"🏠 PAGINA INIZIALE\nURL: {node}\nDistanza: {distance} \nConnessioni: {degree}"
         
         elif node_type == 'dynamic':
             dynamic_label = node_data.get('dynamic_label', 'N/A')
-            return f"🔄 CONTENUTO DINAMICO\nSezione: {dynamic_label}\nURL: {node}\nConnessioni: {degree}"
+            return f"🔄 CONTENUTO DINAMICO\nSezione: {dynamic_label}\nURL: {node}\nDistanza: {distance} \nConnessioni: {degree}"
         
         elif node_type == 'file':
             file_type = node_data.get('file_type', 'unknown')
-            return f"📄 FILE SCARICABILE\nTipo: {file_type}\nURL: {node}"
+            return f"📄 FILE SCARICABILE\nTipo: {file_type}\nURL: {node}\nDistanza: {distance}"
         
         elif node_type == 'broken':
             error_msg = node_data.get('error', 'Errore sconosciuto')
-            return f"❌ LINK ROTTO\nURL: {node}\nStatus: {status_code}\nErrore: {error_msg}"
+            return f"❌ LINK ROTTO\nURL: {node}\nStatus: {status_code}\nDistanza: {distance}\nErrore: {error_msg}"
         
         else:
             title = node_data.get('title', 'N/A')
-            return f"✓ URL: {node}\nStatus: {status_code}\nTitolo: {title}\nConnessioni: {degree}"
+            return f"✓ URL: {node}\nStatus: {status_code}\nTitolo: {title}\nDistanza: {distance}\nConnessioni: {degree}"
 
 
 def create_force_directed_graph(json_file='./output/site_tree.json'):
@@ -161,8 +162,13 @@ def create_force_directed_graph(json_file='./output/site_tree.json'):
     
     for edge in spt_edges:
         G_spt.add_edge(edge[0], edge[1])
+
+    distances = nx.single_source_shortest_path_length(G_spt, start_url)
+    for node in G_spt.nodes():
+        G_spt.nodes[node]['distance'] = distances.get(node, 0)
     
     return G_spt
+
 
 
 def visualize_force_directed(G, output_file='./output/force_directed_graph.html'):
