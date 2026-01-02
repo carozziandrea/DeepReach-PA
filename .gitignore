@@ -15,3 +15,13 @@ env/
 
 # IDE
 .vscode/
+
+*.xml
+*.html
+
+*.json
+
+*.pyc
+*.bak
+
+*.pdf

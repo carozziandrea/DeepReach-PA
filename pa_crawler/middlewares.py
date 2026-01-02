@@ -4,6 +4,12 @@
 # https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
+from scrapy.http import HtmlResponse
+from selenium import webdriver
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.support.ui import WebDriverWait
+import time
 
 # useful for handling different item types with a single interface
 from itemadapter import ItemAdapter
@@ -98,3 +104,69 @@ class PaCrawlerDownloaderMiddleware:
 
     def spider_opened(self, spider):
         spider.logger.info("Spider opened: %s" % spider.name)
+
+
+class SeleniumMiddleware:
+    """Middleware Selenium compatibile con Selenium 4.x"""
+
+    def __init__(self):
+        firefox_options = FirefoxOptions()
+        firefox_options.add_argument('--headless')
+        firefox_options.add_argument('--disable-gpu')
+        firefox_options.add_argument('--no-sandbox')
+        firefox_options.add_argument('--disable-dev-shm-usage')
+
+        self.driver = webdriver.Firefox(options=firefox_options)
+
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        middleware = cls()
+        crawler.signals.connect(middleware.spider_closed, signal=signals.spider_closed)
+        return middleware
+
+    def process_request(self, request, spider):
+        """Processa richieste che richiedono Selenium"""
+        # Solo per SeleniumRequest
+        if not hasattr(request, 'meta') or not request.meta.get('selenium'):
+            return None
+
+        spider.logger.info(f'🌐 Selenium: {request.url}')
+
+        try:
+            self.driver.get(request.url)
+
+            # Wait time se specificato
+            wait_time = request.meta.get('wait_time', 3)
+
+            # Wait until se specificato
+            wait_until = request.meta.get('wait_until')
+            if wait_until:
+                WebDriverWait(self.driver, wait_time).until(wait_until)
+            else:
+                time.sleep(wait_time)
+
+            # Ottieni il contenuto della pagina
+            body = self.driver.page_source
+
+            # Crea response Scrapy
+            response = HtmlResponse(
+                url=self.driver.current_url,
+                body=body,
+                encoding='utf-8',
+                request=request
+            )
+
+            # Aggiungi driver al meta della response
+            response.meta['driver'] = self.driver
+
+            return response
+
+        except Exception as e:
+            spider.logger.error(f'❌ Errore Selenium su {request.url}: {e}')
+            return None
+
+    def spider_closed(self):
+        """Chiudi il driver quando lo spider finisce"""
+        if hasattr(self, 'driver') and self.driver:
+            self.driver.quit()
