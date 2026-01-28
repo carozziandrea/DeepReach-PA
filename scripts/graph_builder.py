@@ -1,5 +1,45 @@
 import networkx as nx
 import json
+from typing import Tuple, Optional
+
+# Sezioni obbligatorie per la trasparenza PA (stesso formato di orchestrator/config.py)
+TRANSPARENCY_SECTIONS = {
+    "organizzazione": [
+        "organi", "uffici", "organigramma", "organizzazione",
+        "struttura", "articolazione"
+    ],
+    "bilanci": [
+        "bilancio", "bilanci", "rendiconto", "piano-indicatori",
+        "patrimonio", "spese", "entrate"
+    ],
+    "personale": [
+        "personale", "dotazione", "dirigenti", "posizioni-organizzative",
+        "contrattazione", "assenze", "tassi-assenza"
+    ],
+    "bandi_gare": [
+        "bandi", "gare", "concorsi", "avvisi", "appalti",
+        "contratti", "procedure"
+    ],
+    "delibere_atti": [
+        "delibere", "determine", "atti", "provvedimenti",
+        "ordinanze", "decreti"
+    ],
+    "albo_pretorio": [
+        "albo", "pretorio", "albo-pretorio", "pubblicazioni"
+    ],
+    "consulenti": [
+        "consulenti", "collaboratori", "incarichi", "professionisti"
+    ],
+    "sovvenzioni": [
+        "sovvenzioni", "contributi", "sussidi", "vantaggi-economici"
+    ],
+    "performance": [
+        "performance", "obiettivi", "valutazione", "piano-performance"
+    ],
+    "attivita_procedimenti": [
+        "procedimenti", "attivita", "servizi", "modulistica", "tempi"
+    ],
+}
 
 
 class GraphBuilder:
@@ -18,11 +58,37 @@ class GraphBuilder:
         raise ValueError("Nessun nodo root trovato (depth=0)")
 
     @staticmethod
+    def check_transparency(url: str) -> Tuple[bool, Optional[str]]:
+        """
+        Verifica se l'URL appartiene a una sezione di trasparenza obbligatoria.
+
+        Args:
+            url: L'URL da controllare
+
+        Returns:
+            Tupla (is_transparency, section_name) dove section_name è il nome
+            della sezione trovata o None se non è una sezione trasparenza
+        """
+        url_lower = url.lower()
+
+        for section_name, keywords in TRANSPARENCY_SECTIONS.items():
+            for keyword in keywords:
+                if keyword.lower() in url_lower:
+                    # Formatta nome sezione per display
+                    display_name = section_name.replace("_", " ").title()
+                    return True, display_name
+
+        return False, None
+
+    @staticmethod
     def build_graph(tree: dict, start_url: str) -> nx.DiGraph:
         """Costruisce il grafo dai dati."""
         G = nx.DiGraph()
 
         for url, info in tree.items():
+            # Verifica se è una sezione trasparenza obbligatoria
+            is_transparency, transparency_section = GraphBuilder.check_transparency(url)
+
             G.add_node(
                 url,
                 depth=info.get("depth", 0),
@@ -39,6 +105,9 @@ class GraphBuilder:
                 privacy_risk=info.get("privacy_risk", "none"),
                 privacy_findings=info.get("privacy_findings", []),
                 privacy_total_findings=info.get("privacy_total_findings", 0),
+                # Campi trasparenza (classificazione automatica)
+                is_transparency=is_transparency,
+                transparency_section=transparency_section,
             )
 
         for url, info in tree.items():

@@ -25,6 +25,7 @@ class NodeStyler:
         "red": "#D0021B",
         "green": "#7ED321",
         "purple": "#9D65C9",
+        "cyan": "#17A2B8",  # Per sezioni trasparenza obbligatorie
     }
 
     # Colori bordo per rischio privacy
@@ -80,6 +81,12 @@ class NodeStyler:
             "emoji": "✓",
             "border_width": 1,
         },
+        "transparency": {
+            "color": COLORS["cyan"],
+            "shape": "dot",
+            "emoji": "📋",
+            "border_width": 2,
+        },
     }
 
     @classmethod
@@ -94,6 +101,8 @@ class NodeStyler:
             return "broken"
         elif node_data.get("status") == "pending":
             return "pending"
+        elif node_data.get("is_transparency", False):
+            return "transparency"
         else:
             return "ok"
 
@@ -182,6 +191,12 @@ class NodeStyler:
         elif node_type == "broken":
             error_msg = node_data.get("error", "Errore sconosciuto")
             base = f"❌ LINK ROTTO\nURL: {node}\nStatus: {status_code}\nDistanza: {distance}\nErrore: {error_msg}"
+            return base + privacy_section
+
+        elif node_type == "transparency":
+            section_name = node_data.get("transparency_section", "Sezione obbligatoria")
+            title = node_data.get("title", "N/A")
+            base = f"📋 SEZIONE TRASPARENZA\nSezione: {section_name}\nURL: {node}\nTitolo: {title}\nDistanza: {distance}\nConnessioni: {degree}"
             return base + privacy_section
 
         else:

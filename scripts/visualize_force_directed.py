@@ -23,7 +23,7 @@ def main():
         visualizer.visualize(G_spt, config.output_file)
 
     except Exception as e:
-        print(f"❌ Errore: {e}")
+        print(f"[ERROR] Errore: {e}")
         import traceback
         traceback.print_exc()
 

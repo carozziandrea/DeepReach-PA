@@ -246,8 +246,9 @@ class SiteMapSpider(scrapy.Spider):
         return urls
 
     def _get_output_path(self):
-        """Restituisce il path del file di output."""
-        output_dir = Path(__file__).parent.parent / 'output'
+        """Restituisce il path del file di output (directory unificata output/)."""
+        # Usa output/ nella root del progetto (non pa_crawler/output/)
+        output_dir = Path(__file__).parent.parent.parent / 'output'
         output_dir.mkdir(parents=True, exist_ok=True)
         return output_dir / f'{self.output_name}.json'
 
@@ -298,7 +299,7 @@ class SiteMapSpider(scrapy.Spider):
         if not PLAYWRIGHT_AVAILABLE:
             self.logger.error("scrapy-playwright non disponibile!")
             return
-        
+
         for url in self.start_urls:
             yield scrapy.Request(
                 url=url,
@@ -309,8 +310,8 @@ class SiteMapSpider(scrapy.Spider):
                     'playwright': True,
                     'playwright_context': 'default',  # Riutilizza lo stesso contesto
                     'playwright_page_methods': [
-                        PageMethod('wait_for_selector', 'body', timeout=10000),
-                        PageMethod('evaluate', self.EXPAND_DROPDOWNS_JS),
+                        # Aspetta che la rete sia inattiva (nessuna richiesta per 500ms)
+                        PageMethod('wait_for_load_state', 'networkidle'),
                     ],
                 }
             )
@@ -556,8 +557,8 @@ class SiteMapSpider(scrapy.Spider):
                                 'playwright': True,
                                 'playwright_context': 'default',  # Riutilizza lo stesso contesto
                                 'playwright_page_methods': [
-                                    PageMethod('wait_for_selector', 'body', timeout=5000),
-                                    PageMethod('evaluate', self.EXPAND_DROPDOWNS_JS),
+                                    # Aspetta che la rete sia inattiva (nessuna richiesta per 500ms)
+                                    PageMethod('wait_for_load_state', 'networkidle'),
                                 ],
                                 'parent_url': current_url,
                                 'depth': next_depth

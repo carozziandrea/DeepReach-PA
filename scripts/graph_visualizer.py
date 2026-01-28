@@ -14,14 +14,14 @@ class GraphVisualizer:
     def visualize(self, G: nx.DiGraph, output_file: str) -> None:
         """Crea e salva la visualizzazione del grafo."""
         node_count = G.number_of_nodes()
-        print(f"📊 Visualizzazione grafo con {node_count} nodi")
+        print(f"[GRAPH] Visualizzazione grafo con {node_count} nodi")
 
         net = self._create_network()
         self._configure_all_options(net, node_count)  # ← Passa numero nodi per physics adattivi
         self._add_nodes(net, G)
         self._add_edges(net, G)
         net.save_graph(output_file)
-        print(f"\n✅ Grafo salvato in: {output_file}")
+        print(f"\n[OK] Grafo salvato in: {output_file}")
 
     def _create_network(self) -> Network:
         """Crea la rete PyVis con la configurazione."""
