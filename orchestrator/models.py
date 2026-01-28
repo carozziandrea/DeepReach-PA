@@ -330,3 +330,72 @@ class AnalysisResult:
                 "urls_in_main": section.urls_in_main[:5] if section.urls_in_main else [],
             })
         return result
+
+
+@dataclass
+class SiteRanking:
+    """Ranking di un singolo sito nel batch."""
+
+    url: str = ""
+    usability_score: float = 0.0
+    rating: str = ""
+    at_coverage_percent: float = 0.0
+    has_hidden_transparency: bool = False
+    hidden_sections_count: int = 0
+
+
+@dataclass
+class BatchResult:
+    """
+    Risultato dell'analisi batch di più siti.
+
+    Contiene i risultati individuali e le statistiche aggregate.
+    """
+
+    timestamp: datetime = field(default_factory=datetime.now)
+
+    # Conteggi
+    total_sites: int = 0
+    successful: int = 0
+    failed: int = 0
+
+    # Risultati individuali
+    results: List[AnalysisResult] = field(default_factory=list)
+    failed_sites: List[Dict[str, str]] = field(default_factory=list)
+
+    # Classifica (ordinata per usability score decrescente)
+    ranking: List[SiteRanking] = field(default_factory=list)
+
+    # Statistiche aggregate
+    avg_usability_score: float = 0.0
+    avg_at_coverage: float = 0.0
+    sites_with_hidden_transparency: int = 0
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Converte il risultato batch in dizionario per serializzazione JSON."""
+        return {
+            "metadata": {
+                "timestamp": self.timestamp.isoformat(),
+                "total_sites": self.total_sites,
+                "successful": self.successful,
+                "failed": self.failed,
+            },
+            "statistics": {
+                "avg_usability_score": round(self.avg_usability_score, 1),
+                "avg_at_coverage": round(self.avg_at_coverage, 1),
+                "sites_with_hidden_transparency": self.sites_with_hidden_transparency,
+            },
+            "ranking": [
+                {
+                    "position": i + 1,
+                    "url": r.url,
+                    "usability_score": round(r.usability_score, 1),
+                    "rating": r.rating,
+                    "at_coverage_percent": round(r.at_coverage_percent, 1),
+                    "has_hidden_transparency": r.has_hidden_transparency,
+                    "hidden_sections_count": r.hidden_sections_count,
+                }
+                for i, r in enumerate(self.ranking)
+            ],
+            "failed_sites": self.failed_sites,
+        }

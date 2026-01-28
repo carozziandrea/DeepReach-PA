@@ -21,6 +21,10 @@ from reporters.report_generator import (
     FullAnalysisPDFReporter,
     generate_full_reports,
 )
+from reporters.comparative_reporter import (
+    ComparativeReporter,
+    generate_batch_reports,
+)
 
 __all__ = [
     'BaseReporter',
@@ -32,4 +36,6 @@ __all__ = [
     'FullAnalysisTextReporter',
     'FullAnalysisPDFReporter',
     'generate_full_reports',
+    'ComparativeReporter',
+    'generate_batch_reports',
 ]

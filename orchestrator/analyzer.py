@@ -61,10 +61,10 @@ class Analyzer:
             with open(file_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except FileNotFoundError:
-            print(f"⚠️ File non trovato: {file_path}")
+            print(f"[WARN] File non trovato: {file_path}")
             return None
         except json.JSONDecodeError as e:
-            print(f"⚠️ Errore parsing JSON {file_path}: {e}")
+            print(f"[WARN] Errore parsing JSON {file_path}: {e}")
             return None
     
     def find_section_in_tree(

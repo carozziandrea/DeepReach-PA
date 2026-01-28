@@ -86,13 +86,19 @@ class CrawlConfig:
     deep_max_depth: int = 4  # Ridotto da 5 per velocizzare
     shallow_max_depth: int = 1  # Ridotto da 2 - basta per vedere le sezioni principali
 
+    # Modalità thorough (analisi approfondita per tesi)
+    thorough_deep_depth: int = 5
+    thorough_shallow_depth: int = 2
+    thorough_concurrent: int = 2
+    thorough_delay: float = 1.0
+
     # Timeout (secondi)
     page_load_timeout: int = 20
     js_render_wait: int = 5
 
-    # Output - IMPORTANTE: deve corrispondere a dove il spider salva i file
-    # Il spider salva in: pa_crawler/output/ (relativo alla root del progetto)
-    output_dir: Path = field(default_factory=lambda: Path(__file__).parent.parent / "pa_crawler" / "output")
+    # Output - directory unificata per tutti i dati (crawl + visualizzazione)
+    # Usa output/ nella root del progetto
+    output_dir: Path = field(default_factory=lambda: Path(__file__).parent.parent / "output")
     deep_output_name: str = "site_tree"
     shallow_output_name: str = "site_tree_main"
 

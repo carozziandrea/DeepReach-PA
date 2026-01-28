@@ -24,4 +24,9 @@ env/
 *.pyc
 *.bak
 
+*.txt
 *.pdf
+Objective.md
+nul
+input/lista_siti.txt
+output/force_directed_graph.html

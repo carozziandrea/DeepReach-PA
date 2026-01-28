@@ -33,36 +33,36 @@ class ConsoleReporter(BaseReporter):
     def _print_header(self, result: AnalysisResult) -> None:
         """Stampa l'intestazione del report."""
         print("\n" + "=" * 70)
-        print("📊 REPORT ANALISI TRASPARENZA PA")
+        print("[REPORT] REPORT ANALISI TRASPARENZA PA")
         print("=" * 70)
-        print(f"📅 Data: {result.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"🏠 Homepage: {result.homepage_url}")
+        print(f"[DATA] Data: {result.timestamp.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"[HOME] Homepage: {result.homepage_url}")
         
         if result.at_found:
-            print(f"✅ Sezione AT trovata: {result.at_url}")
+            print(f"[OK] Sezione AT trovata: {result.at_url}")
         else:
-            print("❌ Sezione Amministrazione Trasparente NON trovata")
+            print("[X] Sezione Amministrazione Trasparente NON trovata")
     
     def _print_crawl_info(self, result: AnalysisResult) -> None:
         """Stampa info sui crawl."""
         print("\n" + "-" * 40)
-        print("🕷️  CRAWL ESEGUITI")
+        print("[CRAWL]  CRAWL ESEGUITI")
         print("-" * 40)
         
         if result.crawl_shallow:
             c = result.crawl_shallow
-            status = "✅" if c.success else "❌"
+            status = "[OK]" if c.success else "[X]"
             print(f"   Shallow: {status} {c.total_pages} pagine ({c.duration_seconds:.1f}s)")
         
         if result.crawl_deep:
             c = result.crawl_deep
-            status = "✅" if c.success else "❌"
+            status = "[OK]" if c.success else "[X]"
             print(f"   Deep:    {status} {c.total_pages} pagine ({c.duration_seconds:.1f}s)")
     
     def _print_reachability(self, result: AnalysisResult) -> None:
         """Stampa metriche di raggiungibilità."""
         print("\n" + "-" * 40)
-        print("📏 RAGGIUNGIBILITÀ (Sezione AT)")
+        print("[REACH] RAGGIUNGIBILITÀ (Sezione AT)")
         print("-" * 40)
         
         if result.reachability_at:
@@ -79,7 +79,7 @@ class ConsoleReporter(BaseReporter):
     def _print_quality(self, result: AnalysisResult) -> None:
         """Stampa metriche di qualità."""
         print("\n" + "-" * 40)
-        print("🔧 QUALITÀ STRUTTURALE")
+        print("[QUALITY] QUALITÀ STRUTTURALE")
         print("-" * 40)
         
         if result.quality_at:
@@ -90,9 +90,9 @@ class ConsoleReporter(BaseReporter):
             print(f"      Non visitate:   {q.pages_not_visited}")
             
             if q.broken_urls:
-                print(f"\n   ⚠️  Link rotti (primi 5):")
+                print(f"\n   [!]  Link rotti (primi 5):")
                 for url in q.broken_urls[:5]:
-                    print(f"      • {url[:60]}...")
+                    print(f"      - {url[:60]}...")
         
         if result.quality_main:
             q = result.quality_main
@@ -103,7 +103,7 @@ class ConsoleReporter(BaseReporter):
     def _print_transparency(self, result: AnalysisResult) -> None:
         """Stampa analisi trasparenza sommersa."""
         print("\n" + "-" * 40)
-        print("🔍 ANALISI TRASPARENZA")
+        print("[TRASP] ANALISI TRASPARENZA")
         print("-" * 40)
         
         if result.transparency:
@@ -114,22 +114,22 @@ class ConsoleReporter(BaseReporter):
             print(f"   Mancanti:             {t.sections_missing}")
             
             if t.hidden_sections:
-                print(f"\n   ⚠️  TRASPARENZA SOMMERSA (sezioni fuori da AT):")
+                print(f"\n   [!]  TRASPARENZA SOMMERSA (sezioni fuori da AT):")
                 for section in t.hidden_sections:
-                    print(f"      • {section}")
+                    print(f"      - {section}")
             
             if t.missing_sections:
-                print(f"\n   ❌ SEZIONI MANCANTI:")
+                print(f"\n   [X] SEZIONI MANCANTI:")
                 for section in t.missing_sections:
-                    print(f"      • {section}")
+                    print(f"      - {section}")
             
             if t.all_sections_in_at:
-                print(f"\n   ✅ Tutte le sezioni obbligatorie sono in AT!")
+                print(f"\n   [OK] Tutte le sezioni obbligatorie sono in AT!")
     
     def _print_usability(self, result: AnalysisResult) -> None:
         """Stampa indice di usabilità."""
         print("\n" + "-" * 40)
-        print("📈 INDICE DI USABILITÀ")
+        print("[INDEX] INDICE DI USABILITÀ")
         print("-" * 40)
         
         if result.usability_index:
@@ -138,7 +138,7 @@ class ConsoleReporter(BaseReporter):
             # Barra visiva
             bar_length = 30
             filled = int(u.score / 100 * bar_length)
-            bar = "█" * filled + "░" * (bar_length - filled)
+            bar = "#" * filled + "-" * (bar_length - filled)
             
             print(f"\n   [{bar}] {u.score:.1f}/100")
             print(f"\n   Giudizio: {u.rating}")
@@ -149,13 +149,13 @@ class ConsoleReporter(BaseReporter):
             print(f"      Penalità link rotti:     {-u.broken_penalty:+.1f}")
             print(f"      Penalità trasp. sommersa:{-u.hidden_penalty:+.1f}")
             print(f"      Bonus completezza:       {u.bonus:+.1f}")
-            print(f"      ─────────────────────────────")
+            print(f"      -----------------------------")
             print(f"      TOTALE:                  {u.score:.1f}")
     
     def _print_privacy(self, result: AnalysisResult) -> None:
         """Stampa analisi privacy."""
         print("\n" + "-" * 40)
-        print("🔒 ANALISI PRIVACY")
+        print("[PRIVACY] ANALISI PRIVACY")
         print("-" * 40)
 
         if not result.privacy:
@@ -169,9 +169,9 @@ class ConsoleReporter(BaseReporter):
         print(f"      File (PDF...):  {p.files_scanned}")
 
         print(f"\n   Distribuzione rischio:")
-        print(f"      🔴 ALTO:   {p.high_risk_count} nodi")
-        print(f"      🟠 MEDIO:  {p.medium_risk_count} nodi")
-        print(f"      🟡 BASSO:  {p.low_risk_count} nodi")
+        print(f"      [HIGH] ALTO:   {p.high_risk_count} nodi")
+        print(f"      [MED] MEDIO:  {p.medium_risk_count} nodi")
+        print(f"      [LOW] BASSO:  {p.low_risk_count} nodi")
 
         if p.findings_by_type:
             print(f"\n   Tipi di dati sensibili trovati:")
@@ -184,35 +184,35 @@ class ConsoleReporter(BaseReporter):
             }
             for pattern, count in p.findings_by_type.items():
                 label = pattern_labels.get(pattern, pattern)
-                print(f"      • {label}: {count}")
+                print(f"      - {label}: {count}")
 
         if p.high_risk_urls:
-            print(f"\n   ⚠️  URL ad alto rischio (primi 5):")
+            print(f"\n   [!]  URL ad alto rischio (primi 5):")
             for url in p.high_risk_urls[:5]:
                 # Tronca URL lunghi
                 display_url = url if len(url) < 55 else url[:52] + "..."
-                print(f"      • {display_url}")
+                print(f"      - {display_url}")
 
         # Mostra errori di scansione se presenti
         if p.scan_errors:
-            print(f"\n   ❌ Errori durante la scansione ({len(p.scan_errors)}):")
+            print(f"\n   [X] Errori durante la scansione ({len(p.scan_errors)}):")
             for error in p.scan_errors[:5]:
                 # Tronca errori lunghi
                 display_error = error if len(error) < 70 else error[:67] + "..."
-                print(f"      • {display_error}")
+                print(f"      - {display_error}")
             if len(p.scan_errors) > 5:
                 print(f"      ... e altri {len(p.scan_errors) - 5} errori")
 
     def _print_footer(self) -> None:
         """Stampa il footer del report."""
         print("\n" + "-" * 40)
-        print("📁 REPORT SALVATI")
+        print("[FILES] REPORT SALVATI")
         print("-" * 40)
         print("   I report dettagliati sono disponibili in:")
-        print("      • output/analysis_report.txt")
-        print("      • output/analysis_report.pdf")
-        print("      • output/privacy_report.txt")
-        print("      • output/privacy_report.pdf")
+        print("      - output/analysis_report.txt")
+        print("      - output/analysis_report.pdf")
+        print("      - output/privacy_report.txt")
+        print("      - output/privacy_report.pdf")
         print("\n" + "=" * 70)
         print("Fine report")
         print("=" * 70 + "\n")

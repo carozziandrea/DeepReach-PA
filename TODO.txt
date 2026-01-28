@@ -10,3 +10,5 @@ Controllare uscita dal sito (?)
 
 Colore nodi: tipo di pagina o distanza?
 
+IN TESI:
+    Mancata organizzazione univoca e strutturata delle sezioni che rende il crawling meno efficace

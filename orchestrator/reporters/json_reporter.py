@@ -50,4 +50,4 @@ class JsonReporter(BaseReporter):
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=self.indent, ensure_ascii=False)
         
-        print(f"💾 Report JSON salvato: {output_path}")
+        print(f"[SAVED] Report JSON salvato: {output_path}")

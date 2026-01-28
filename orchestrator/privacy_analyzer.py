@@ -200,7 +200,7 @@ class PrivacyAnalyzer:
                 failed_count += 1
                 # Mostra primo errore come diagnostica
                 if failed_count == 1:
-                    print(f"  ❌ Primo errore: {result.error}")
+                    print(f"  [X] Primo errore: {result.error}")
             else:
                 self.summary.files_downloaded += 1
                 self.summary.files_scanned += 1
