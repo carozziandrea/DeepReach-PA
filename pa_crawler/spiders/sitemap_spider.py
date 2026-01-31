@@ -145,7 +145,7 @@ class SiteMapSpider(scrapy.Spider):
     # Path al file lista_siti.txt (relativo alla root del progetto)
     LISTA_SITI_PATH = Path(__file__).parent.parent.parent / 'input' / 'lista_siti.txt'
 
-    def __init__(self, start_url=None, mode='deep', max_depth=None, output_name=None, *args, **kwargs):
+    def __init__(self, start_url=None, mode='deep', max_depth=None, output_name=None, output_dir=None, *args, **kwargs):
         """
         Inizializza il crawler.
 
@@ -154,6 +154,7 @@ class SiteMapSpider(scrapy.Spider):
             mode: 'deep' (per AT, esclude nav) o 'shallow' (per homepage, include nav)
             max_depth: Profondità massima (default: 5 per deep, 2 per shallow)
             output_name: Nome file output senza .json (default: site_tree o site_tree_main)
+            output_dir: Directory di output (default: output/ nella root del progetto)
         """
         super().__init__(*args, **kwargs)
 
@@ -183,7 +184,13 @@ class SiteMapSpider(scrapy.Spider):
             self.output_name = output_name
         else:
             self.output_name = 'site_tree' if mode == 'deep' else 'site_tree_main'
-        
+
+        # Directory output: valore passato oppure default (output/ nella root)
+        if output_dir:
+            self.output_dir = Path(output_dir)
+        else:
+            self.output_dir = None  # Usa default in _get_output_path
+
         # ========== HOMEPAGE ==========
         parsed = urlparse(self.start_urls[0])
         self.homepage_url = f"{parsed.scheme}://{parsed.netloc}"
@@ -246,9 +253,12 @@ class SiteMapSpider(scrapy.Spider):
         return urls
 
     def _get_output_path(self):
-        """Restituisce il path del file di output (directory unificata output/)."""
-        # Usa output/ nella root del progetto (non pa_crawler/output/)
-        output_dir = Path(__file__).parent.parent.parent / 'output'
+        """Restituisce il path del file di output."""
+        # Usa output_dir custom se specificata, altrimenti output/ nella root del progetto
+        if self.output_dir:
+            output_dir = self.output_dir
+        else:
+            output_dir = Path(__file__).parent.parent.parent / 'output'
         output_dir.mkdir(parents=True, exist_ok=True)
         return output_dir / f'{self.output_name}.json'
 

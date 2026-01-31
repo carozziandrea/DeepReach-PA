@@ -82,7 +82,8 @@ class CrawlerRunner:
         max_depth: int,
         output_name: str,
         concurrent_requests: int = 4,
-        download_delay: float = 0.5
+        download_delay: float = 0.5,
+        output_dir: Optional[Path] = None
     ) -> Tuple[bool, float, str]:
         """
         Esegue scrapy crawl come subprocess.
@@ -94,6 +95,7 @@ class CrawlerRunner:
             output_name: Nome file output (senza .json)
             concurrent_requests: Numero di richieste parallele per dominio
             download_delay: Pausa tra richieste (secondi)
+            output_dir: Directory di output per i file JSON (opzionale)
 
         Returns:
             Tupla (success, duration_seconds, error_message)
@@ -108,6 +110,10 @@ class CrawlerRunner:
             "-s", f"CONCURRENT_REQUESTS_PER_DOMAIN={concurrent_requests}",
             "-s", f"DOWNLOAD_DELAY={download_delay}",
         ]
+
+        # Aggiungi output_dir se specificata
+        if output_dir:
+            cmd.extend(["-a", f"output_dir={output_dir}"])
 
         start_time = time.time()
 
@@ -195,7 +201,8 @@ class CrawlerRunner:
             max_depth=max_depth,
             output_name=output_name,
             concurrent_requests=concurrent,
-            download_delay=delay
+            download_delay=delay,
+            output_dir=self.config.crawl.output_dir,
         )
 
         info = CrawlInfo(
@@ -256,7 +263,8 @@ class CrawlerRunner:
             max_depth=max_depth,
             output_name=output_name,
             concurrent_requests=concurrent,
-            download_delay=delay
+            download_delay=delay,
+            output_dir=self.config.crawl.output_dir,
         )
 
         info = CrawlInfo(
@@ -280,8 +288,8 @@ class CrawlerRunner:
         """Conta le pagine nel file JSON di output."""
         import json
 
-        # Il spider salva in pa_crawler/output/, non in config.crawl.output_dir
-        output_path = self.spider_output_dir / f"{output_name}.json"
+        # Usa la directory configurata (può essere site-specific in batch mode)
+        output_path = self.config.crawl.output_dir / f"{output_name}.json"
 
         try:
             with open(output_path, 'r', encoding='utf-8') as f:

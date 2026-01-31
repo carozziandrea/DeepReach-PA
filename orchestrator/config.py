@@ -93,8 +93,10 @@ class CrawlConfig:
     thorough_delay: float = 1.0
 
     # Timeout (secondi)
-    page_load_timeout: int = 20
+    page_load_timeout: int = 30  # Timeout per singola pagina
     js_render_wait: int = 5
+    site_timeout: int = 7200  # Timeout totale per sito (2 ore)
+    request_timeout: int = 60  # Timeout per singola richiesta HTTP
 
     # Output - directory unificata per tutti i dati (crawl + visualizzazione)
     # Usa output/ nella root del progetto

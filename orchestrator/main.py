@@ -41,6 +41,7 @@ from reporters import (
 )
 from visualizer import Visualizer
 from batch_runner import BatchRunner
+from utils import extract_domain, ensure_directory, get_site_output_dir
 
 
 class Orchestrator:
@@ -126,7 +127,8 @@ class Orchestrator:
         shallow_only: bool = False,
         deep_only: bool = False,
         at_url_override: Optional[str] = None,
-        thorough: bool = False
+        thorough: bool = False,
+        site_output_dir: Optional[Path] = None
     ) -> AnalysisResult:
         """
         Esegue l'intero processo di analisi.
@@ -137,6 +139,8 @@ class Orchestrator:
             shallow_only: Se True, esegue solo crawl shallow
             deep_only: Se True, esegue solo crawl deep
             at_url_override: URL AT manuale (salta la ricerca automatica)
+            thorough: Se True, usa analisi approfondita
+            site_output_dir: Directory di output specifica per questo sito
 
         Returns:
             AnalysisResult con i risultati dell'analisi
@@ -144,6 +148,24 @@ class Orchestrator:
         print("\n" + "=" * 70)
         print("DeepReach-PA - Analisi Trasparenza PA")
         print("=" * 70)
+
+        # Se specificata una directory per sito, usala per output
+        if site_output_dir:
+            site_output_dir = Path(site_output_dir)
+            ensure_directory(site_output_dir)
+            # Aggiorna temporaneamente le directory di output
+            original_crawl_output = self.config.crawl.output_dir
+            original_report_output = self.config.report_output_dir
+            self.config.crawl.output_dir = site_output_dir
+            self.config.report_output_dir = site_output_dir
+            # Ricrea i componenti con le nuove directory
+            self.crawler_runner = CrawlerRunner(self.config, self.crawler_dir)
+            self.visualizer = Visualizer(site_output_dir)
+            self.reporters = [
+                ConsoleReporter(site_output_dir),
+                JsonReporter(site_output_dir),
+            ]
+            print(f"[OUTPUT] Directory: {site_output_dir}")
 
         # Normalizza URL
         if not homepage_url.startswith('http'):
@@ -178,6 +200,10 @@ class Orchestrator:
                     at_found=False,
                 )
                 self._generate_reports(result)
+                # Ripristina configurazione se necessario
+                if site_output_dir:
+                    self.config.crawl.output_dir = original_crawl_output
+                    self.config.report_output_dir = original_report_output
                 return result
             elif not found and shallow_only:
                 # In shallow-only, AT non trovato non e' un errore fatale
@@ -218,6 +244,18 @@ class Orchestrator:
 
         # Step 4: Genera report
         self._generate_reports(result)
+
+        # Ripristina configurazione originale se era stata modificata
+        if site_output_dir:
+            self.config.crawl.output_dir = original_crawl_output
+            self.config.report_output_dir = original_report_output
+            # Ripristina componenti originali
+            self.crawler_runner = CrawlerRunner(self.config, self.crawler_dir)
+            self.visualizer = Visualizer(self.config.crawl.output_dir)
+            self.reporters = [
+                ConsoleReporter(self.config.report_output_dir),
+                JsonReporter(self.config.report_output_dir),
+            ]
 
         return result
 
@@ -356,6 +394,12 @@ Esempi:
         help="Analisi approfondita: depth maggiore, crawl più lento (per tesi)"
     )
 
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="In modalità batch, riprende saltando i siti già analizzati"
+    )
+
     return parser.parse_args()
 
 
@@ -395,6 +439,7 @@ def run_batch_mode(args, config, crawler_dir):
         skip_crawl=args.skip_crawl,
         shallow_only=args.shallow_only,
         thorough=args.thorough,
+        resume=args.resume,
     )
 
     # Genera report comparativo
