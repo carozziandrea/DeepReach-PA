@@ -192,5 +192,13 @@ def generate_batch_reports(
         output_dir: Directory per l'output
         filename: Nome base del file
     """
+    # Report TXT e JSON
     reporter = ComparativeReporter(output_dir)
     reporter.report(batch_result, filename)
+
+    # Genera pagina indice HTML
+    try:
+        from batch_index_generator import generate_batch_index
+        generate_batch_index(batch_result, output_dir)
+    except Exception as e:
+        print(f"[WARN] Errore generazione indice HTML: {e}")

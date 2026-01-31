@@ -294,13 +294,13 @@ class Orchestrator:
         # Genera grafo per crawl deep (AT) se disponibile
         if result.crawl_deep and result.crawl_deep.success:
             crawl_name = self.config.crawl.deep_output_name
-            output_name = "force_directed_graph"
+            output_name = "deep"  # visualizer aggiunge "_graph.html" → deep_graph.html
             self.visualizer.generate_for_crawl(crawl_name, output_name)
 
         # Genera anche grafo per crawl shallow se disponibile
         if result.crawl_shallow and result.crawl_shallow.success:
             crawl_name = self.config.crawl.shallow_output_name
-            output_name = f"{crawl_name}_graph"
+            output_name = "shallow"  # visualizer aggiunge "_graph.html" → shallow_graph.html
             self.visualizer.generate_for_crawl(crawl_name, output_name)
 
     def add_reporter(self, reporter) -> None:
