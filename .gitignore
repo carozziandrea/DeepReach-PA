@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
 
 # Virtual Environment
 .venv/
@@ -9,24 +10,38 @@ env/
 
 # Driver Selenium
 .driver/
+driver/
 
 # Scrapy
 .scrapy/
 
-# IDE
+# IDE e Editor
 .vscode/
+.idea/
+.claude/
 
+# Output generati (test e produzione)
+output/
+output_pdf_test/
+output_remediation_test/
+output_test/
+orchestrator/output_test_completo/
+orchestrator/output_test_graph/
+docs/
+
+# File generati
 *.xml
 *.html
-
 *.json
-
-*.pyc
-*.bak
-
-*.txt
 *.pdf
+*.bak
+*.png
+
+# Note personali / file temporanei
 Objective.md
+TODO.txt
+diff_analyzer.txt
 nul
+
+# Input di test
 input/lista_siti.txt
-output/force_directed_graph.html
