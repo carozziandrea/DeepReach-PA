@@ -1,3 +1,12 @@
+"""
+Node Styler - Definisce stili visivi per i nodi del grafo.
+
+Gestisce colori, forme ed emoji per diversi tipi di nodi:
+- Homepage, pagine dinamiche, file scaricabili
+- Link rotti, sezioni trasparenza
+- Indicatori visivi per rischio privacy
+"""
+
 from dataclasses import dataclass
 from typing import Optional, Dict, Any, List
 

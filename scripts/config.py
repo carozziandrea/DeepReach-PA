@@ -1,3 +1,10 @@
+"""
+Visualization Config - Configurazione per la visualizzazione del grafo.
+
+Definisce parametri per PyVis: dimensioni, colori, fisica e adattamento
+automatico dei parametri in base al numero di nodi nel grafo.
+"""
+
 from dataclasses import dataclass, field
 from typing import Dict, Any
 

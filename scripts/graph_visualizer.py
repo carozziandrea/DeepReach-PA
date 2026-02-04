@@ -1,3 +1,14 @@
+"""
+Graph Visualizer - Genera visualizzazioni interattive HTML dei grafi.
+
+Questo modulo utilizza PyVis per creare visualizzazioni force-directed
+dei grafi del sito web, con funzionalità di:
+- Stili nodi personalizzati basati su tipo e rischio privacy
+- Legenda interattiva
+- Statistiche del grafo
+- Controlli per navigazione e zoom
+"""
+
 import networkx as nx
 from pyvis.network import Network
 import json

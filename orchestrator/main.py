@@ -274,8 +274,19 @@ class Orchestrator:
         print("-" * 40)
 
         try:
-            # Report analisi completa
-            generate_full_reports(result, self.config.report_output_dir)
+            # Determina quale grafo JSON usare per l'immagine PNG
+            graph_json_path = None
+            if result.crawl_deep and result.crawl_deep.success:
+                graph_json_path = str(
+                    self.config.crawl.output_dir / f"{self.config.crawl.deep_output_name}.json"
+                )
+            elif result.crawl_shallow and result.crawl_shallow.success:
+                graph_json_path = str(
+                    self.config.crawl.output_dir / f"{self.config.crawl.shallow_output_name}.json"
+                )
+
+            # Report analisi completa (con grafo PNG se disponibile)
+            generate_full_reports(result, self.config.report_output_dir, graph_json_path)
         except Exception as e:
             print(f"[WARN] Errore generazione report analisi: {e}")
 

@@ -202,6 +202,7 @@ class Analyzer:
             medium_risk_urls=summary.medium_risk_urls,
             findings_by_type=summary.findings_by_type,
             scan_errors=summary.errors,
+            remediation_suggestions=summary.remediation_suggestions,
         )
 
         # Stampa riepilogo

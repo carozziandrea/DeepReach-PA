@@ -169,6 +169,9 @@ class PrivacyMetrics:
     # Errori di scansione
     scan_errors: List[str] = field(default_factory=list)
 
+    # Suggerimenti di remediation basati sui tipi di dati trovati
+    remediation_suggestions: List[str] = field(default_factory=list)
+
     @property
     def has_high_risk(self) -> bool:
         """True se ci sono nodi ad alto rischio."""

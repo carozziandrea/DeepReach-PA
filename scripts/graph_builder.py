@@ -1,3 +1,16 @@
+"""
+Graph Builder - Costruisce grafi NetworkX dai dati JSON del crawl.
+
+Questo modulo fornisce la classe GraphBuilder che:
+- Carica i dati JSON prodotti dal crawler
+- Costruisce grafi NetworkX con metadati sui nodi
+- Classifica i nodi come sezioni di trasparenza
+- Crea lo Shortest Path Tree per la visualizzazione
+
+Nota: TRANSPARENCY_SECTIONS è duplicato da orchestrator/config.py
+per permettere l'uso standalone degli script di visualizzazione.
+"""
+
 import networkx as nx
 import json
 from typing import Tuple, Optional

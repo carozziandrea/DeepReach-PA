@@ -63,6 +63,9 @@ class PrivacyAnalysisSummary:
     # Errori
     errors: List[str] = field(default_factory=list)
 
+    # Suggerimenti di remediation
+    remediation_suggestions: List[str] = field(default_factory=list)
+
     def to_dict(self) -> Dict:
         return {
             "total_scanned": self.total_scanned,
@@ -309,6 +312,12 @@ class PrivacyAnalyzer:
 
         self.summary.total_scanned = (
             self.summary.pages_scanned + self.summary.files_scanned
+        )
+
+        # Genera suggerimenti di remediation basati sui tipi di dati trovati
+        self.summary.remediation_suggestions = self.scanner.get_remediation_suggestions(
+            self.summary.findings_by_type,
+            has_high_risk=(self.summary.high_risk_count > 0)
         )
 
 

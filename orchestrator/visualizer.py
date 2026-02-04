@@ -118,6 +118,47 @@ class Visualizer:
         return self.generate_graph(input_file, output_file)
 
 
+    def generate_graph_png(
+        self,
+        input_file: str = None,
+        output_file: str = None
+    ) -> Optional[str]:
+        """
+        Genera un'immagine PNG del grafo per embedding nei report PDF.
+
+        Args:
+            input_file: Path al file JSON di input
+            output_file: Path al file PNG di output
+
+        Returns:
+            Path al file PNG generato, o None se errore
+        """
+        input_path = input_file or self.config.input_file
+        output_path = output_file or str(self.output_dir / "graph_image.png")
+
+        try:
+            # Carica e costruisci il grafo
+            data = GraphBuilder.load_data(input_path)
+            tree = data.get("tree", data)
+            start_url = GraphBuilder.find_root_node(tree)
+            G = GraphBuilder.build_graph(tree, start_url)
+            G_spt = GraphBuilder.create_shortest_path_tree(G, start_url)
+
+            # Esporta come PNG
+            from reporters.chart_utils import export_graph_to_png
+            result = export_graph_to_png(G_spt, Path(output_path))
+
+            if result:
+                print(f"[OK] Grafo PNG generato: {output_path}")
+                return result
+
+            return None
+
+        except Exception as e:
+            print(f"[WARN] Impossibile generare grafo PNG: {e}")
+            return None
+
+
 def generate_visualization(
     input_file: str,
     output_file: str = None,

@@ -45,6 +45,46 @@ TABLE_HEADER_PATTERNS: List[str] = [
 ]
 
 
+# =============================================================================
+# SUGGERIMENTI DI REMEDIATION PER TIPO DI DATO
+# =============================================================================
+
+REMEDIATION_SUGGESTIONS: Dict[str, List[str]] = {
+    "codice_fiscale": [
+        "Rimuovere codici fiscali da documenti pubblici",
+        "Utilizzare riferimenti anonimi (es. numero pratica)",
+    ],
+    "iban": [
+        "Non pubblicare IBAN completi online",
+        "Se necessario, mascherare le ultime 12 cifre",
+    ],
+    "email": [
+        "Centralizzare i contatti in una pagina dedicata",
+        "Usare form di contatto invece di email in chiaro",
+    ],
+    "telefono": [
+        "Ridurre l'esposizione di numeri diretti",
+        "Preferire un numero di centralino unico",
+    ],
+    "indirizzo": [
+        "Limitare gli indirizzi alle sole pagine di contatto/sedi",
+    ],
+}
+
+# Suggerimenti generali per rischio alto
+GENERAL_HIGH_RISK_SUGGESTIONS: List[str] = [
+    "Verificare la necessita di pubblicazione dei dati personali",
+    "Richiedere revisione privacy al DPO",
+]
+
+# Link a risorse esterne
+PRIVACY_RESOURCES: Dict[str, str] = {
+    "Linee guida AGID": "https://www.agid.gov.it/it/agenzia/stampa-e-comunicazione/notizie/2024/09/09/pubblicazione-linee-guida-accessibilita",
+    "Garante Privacy - Trasparenza PA": "https://www.garanteprivacy.it/home/docweb/-/docweb-display/docweb/9556625",
+    "FAQ Trasparenza e Privacy": "https://www.garanteprivacy.it/faq/trasparenza-e-privacy",
+}
+
+
 @dataclass
 class PrivacyFinding:
     """Singolo ritrovamento di dato sensibile."""
@@ -216,6 +256,41 @@ class ContentScanner:
             return "low"
 
         return "none"
+
+    def get_remediation_suggestions(
+        self,
+        findings_by_type: Dict[str, int],
+        has_high_risk: bool = False
+    ) -> List[str]:
+        """
+        Genera suggerimenti di remediation basati sui tipi di dati trovati.
+
+        Args:
+            findings_by_type: Dizionario {pattern_type: count}
+            has_high_risk: True se ci sono nodi ad alto rischio
+
+        Returns:
+            Lista di suggerimenti unici
+        """
+        suggestions = []
+        seen = set()
+
+        # Suggerimenti per ogni tipo di dato trovato
+        for pattern_type, count in findings_by_type.items():
+            if pattern_type in REMEDIATION_SUGGESTIONS:
+                for suggestion in REMEDIATION_SUGGESTIONS[pattern_type]:
+                    if suggestion not in seen:
+                        suggestions.append(suggestion)
+                        seen.add(suggestion)
+
+        # Suggerimenti generali per rischio alto
+        if has_high_risk:
+            for suggestion in GENERAL_HIGH_RISK_SUGGESTIONS:
+                if suggestion not in seen:
+                    suggestions.append(suggestion)
+                    seen.add(suggestion)
+
+        return suggestions
 
     def scan_html(self, html_content: str) -> PrivacyScanResult:
         """
