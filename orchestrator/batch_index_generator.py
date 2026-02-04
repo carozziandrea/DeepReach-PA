@@ -312,7 +312,8 @@ class BatchIndexGenerator:
                     <td>{hidden_text}</td>
                     <td class="links">
                         <a href="{domain}/deep_graph.html" target="_blank">Grafo AT</a>
-                        <a href="{domain}/shallow_graph.html" class="secondary" target="_blank">Grafo Shallow</a>
+                        <a href="{domain}/analysis_report.pdf" class="secondary" target="_blank">Report PDF</a>
+                        <a href="{domain}/privacy_report.pdf" class="secondary" target="_blank">Privacy PDF</a>
                         <a href="{domain}/analysis_report.json" class="secondary" target="_blank">JSON</a>
                     </td>
                 </tr>'''
