@@ -1,7 +1,7 @@
 [project]
-name = "tesi"
+name = "deepreach-pa"
 version = "0.1.0"
-description = "Add your description here"
+description = "Analisi automatica della trasparenza nei siti della Pubblica Amministrazione italiana"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

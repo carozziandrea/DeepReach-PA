@@ -50,6 +50,9 @@ class BatchIndexGenerator:
         try:
             html_content = self._generate_html(batch_result)
 
+            # Assicura che la cartella di output esista
+            self.output_dir.mkdir(parents=True, exist_ok=True)
+
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(html_content)
 

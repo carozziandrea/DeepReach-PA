@@ -358,6 +358,9 @@ def analyze_site_tree_privacy(
         output_data["tree"] = updated_tree
         output_data["privacy_summary"] = summary.to_dict()
 
+        # Assicura che la cartella di output esista
+        Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(output_data, f, indent=2, ensure_ascii=False)
 
