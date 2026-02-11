@@ -23,26 +23,42 @@ Il software implementa le seguenti funzionalità:
 ## Architettura del Sistema
 ```
 DeepReach-PA
-├── orchestrator/               # Modulo principale di orchestrazione
-│   ├── main.py                 # Entry point e gestione argomenti CLI
-│   ├── config.py               # Configurazione centralizzata
-│   ├── homepage_checker.py     # Rilevamento sezione AT nella homepage
-│   ├── crawler_runner.py       # Esecuzione dei crawl Scrapy
-│   ├── analyzer.py             # Analisi dei dati raccolti
-│   ├── content_scanner.py      # Scansione contenuti e privacy
-│   ├── privacy_analyzer.py     # Analisi rischi privacy (PDF, HTML)
-│   ├── metrics.py              # Calcolo metriche e indici
-│   ├── models.py               # Modelli dati (dataclass)
-│   ├── visualizer.py           # Generazione grafi interattivi
-│   ├── batch_runner.py         # Esecuzione batch su più siti
-│   └── reporters/              # Generazione report (PDF, TXT, JSON)
+├── orchestrator/                   # Modulo principale di orchestrazione
+│   ├── main.py                     # Entry point e gestione argomenti CLI
+│   ├── config.py                   # Configurazione centralizzata
+│   ├── homepage_checker.py         # Rilevamento sezione AT nella homepage
+│   ├── crawler_runner.py           # Esecuzione dei crawl Scrapy
+│   ├── analyzer.py                 # Analisi dei dati raccolti
+│   ├── content_scanner.py          # Scansione contenuti e privacy
+│   ├── privacy_analyzer.py         # Analisi rischi privacy (PDF, HTML)
+│   ├── metrics.py                  # Calcolo metriche e indici
+│   ├── models.py                   # Modelli dati (dataclass)
+│   ├── visualizer.py               # Generazione grafi interattivi
+│   ├── batch_runner.py             # Esecuzione batch su più siti
+│   ├── batch_index_generator.py    # Generazione pagina index.html batch
+│   ├── utils.py                    # Funzioni di utilità comuni
+│   ├── __init__.py                 # Esportazioni del modulo
+│   ├── lib/                        # Librerie JS embedded (vis.js, tom-select)
+│   └── reporters/                  # Generazione report
+│       ├── report_generator.py     # Report PDF/TXT di analisi
+│       ├── privacy_reporter.py     # Report PDF/TXT privacy
+│       ├── comparative_reporter.py # Report comparativo batch
+│       ├── console_reporter.py     # Output su console
+│       ├── json_reporter.py        # Export JSON
+│       ├── chart_utils.py          # Generazione grafici per PDF
+│       └── base_reporter.py        # Classe base reporter
 │
-├── pa_crawler/                 # Spider Scrapy per il crawling
-│   ├── spiders/                # Implementazione spider
-│   ├── middlewares.py          # Gestione richieste e Playwright
-│   └── settings.py             # Configurazione Scrapy
+├── pa_crawler/                     # Spider Scrapy per il crawling
+│   ├── spiders/                    # Implementazione spider
+│   ├── middlewares.py              # Gestione richieste e Playwright
+│   └── settings.py                 # Configurazione Scrapy
 │
-└── scripts/                    # Utility e visualizzazione grafi
+└── scripts/                        # Modulo visualizzazione grafi
+    ├── graph_visualizer.py         # Rendering grafo interattivo (PyVis)
+    ├── graph_builder.py            # Costruzione grafo da dati crawl
+    ├── graph_stats.py              # Statistiche sul grafo
+    ├── node_styler.py              # Stile e colori dei nodi
+    └── config.py                   # Configurazione visualizzazione
 ```
 
 ### Flusso di Esecuzione
@@ -77,8 +93,6 @@ DeepReach-PA
 | **ReportLab** | Generazione di report in formato PDF |
 | **pdfplumber** | Estrazione di testo da documenti PDF per analisi privacy |
 | **Requests** | Gestione richieste HTTP per download documenti |
-| **NumPy / SciPy** | Calcoli numerici e analisi statistica |
-| **python-louvain** | Algoritmi di community detection per analisi grafi |
 
 
 ## Installazione
@@ -86,15 +100,14 @@ DeepReach-PA
 ### Prerequisiti
 
 - Python 3.13 o superiore
-- [uv](https://docs.astral.sh/uv/) (gestore pacchetti Python) - consigliato
-- Connessione Internet
+- [uv](https://docs.astral.sh/uv/) (gestore pacchetti Python)
 
 ### Procedura
 
 1. Clonare il repository:
    ```bash
-   git clone <repository-url>
-   cd Tesi
+   git clone https://gitlab.di.unimi.it/andrea.carozzi/tesi-triennale-trasparenza-nella-pa.git
+   cd tesi-triennale-trasparenza-nella-pa
    ```
 
 2. Installare le dipendenze con `uv`:
@@ -134,6 +147,8 @@ uv run python main.py https://www.interno.gov.it
 | `--skip-crawl` | Salta i crawl e analizza i JSON esistenti |
 | `--output-dir <DIR>` | Directory per i file di output (default: `./output`) |
 | `--thorough` | Analisi approfondita con maggiore profondità di crawl |
+| `--limit-pdf <N>` | Limita il numero di PDF da scansionare per sito (0 = nessun limite) |
+| `--crawler-dir <DIR>` | Specifica la directory del crawler Scrapy |
 
 ### Modalità Batch
 
@@ -166,6 +181,7 @@ Al termine dell'analisi, vengono generati i seguenti file nella directory di out
 | `privacy_report.txt` | Versione testuale del report privacy |
 | `graph_image.png` | Visualizzazione statica del grafo del sito |
 | `*_graph.html` | Visualizzazione interattiva del grafo (PyVis) |
+| `index.html` | Pagina riassuntiva con panoramica di tutti i siti analizzati (solo modalità batch) |
 
 
 ## Struttura dei Report
@@ -193,4 +209,12 @@ Il report privacy include:
 
 ## Stato del Progetto
 
-* In corso.
+**Completato**
+
+Sono state implementate tutte le funzionalità previste:
+- Crawling automatico con Scrapy + Playwright
+- Analisi trasparenza e rilevamento "trasparenza sommersa"
+- Analisi privacy su pagine HTML e PDF
+- Generazione report PDF/TXT/JSON
+- Visualizzazione grafi interattivi
+- Modalità batch per analisi multipla
