@@ -654,7 +654,8 @@ def generate_full_reports(
     Returns:
         Dizionario con i path dei file generati
     """
-    output_dir = output_dir or Path("./output")
+    # Path assoluto: da reporters/ → orchestrator/ → Tesi/ → output/
+    output_dir = output_dir or Path(__file__).parent.parent.parent / "output"
     generated = {}
 
     # Report TXT

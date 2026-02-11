@@ -552,7 +552,8 @@ def generate_privacy_reports(result: AnalysisResult, output_dir: Path = None) ->
     Returns:
         Dizionario con i path dei file generati
     """
-    output_dir = output_dir or Path("./output")
+    # Path assoluto: da reporters/ → orchestrator/ → Tesi/ → output/
+    output_dir = output_dir or Path(__file__).parent.parent.parent / "output"
     generated = {}
 
     # Report TXT

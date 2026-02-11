@@ -31,7 +31,8 @@ class ComparativeReporter:
         Args:
             output_dir: Directory per l'output (default: ./output)
         """
-        self.output_dir = output_dir or Path("./output")
+        # Path assoluto: da reporters/ → orchestrator/ → Tesi/ → output/
+        self.output_dir = output_dir or Path(__file__).parent.parent.parent / "output"
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def report(
@@ -196,9 +197,10 @@ def generate_batch_reports(
     reporter = ComparativeReporter(output_dir)
     reporter.report(batch_result, filename)
 
-    # Genera pagina indice HTML
+    # Genera pagina indice HTML cumulativa (mostra tutti i siti analizzati)
     try:
-        from batch_index_generator import generate_batch_index
-        generate_batch_index(batch_result, output_dir)
+        from batch_index_generator import generate_cumulative_index
+        generate_cumulative_index(output_dir)
     except Exception as e:
         print(f"[WARN] Errore generazione indice HTML: {e}")
+

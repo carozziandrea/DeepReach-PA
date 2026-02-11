@@ -130,6 +130,7 @@ class PrivacyConfig:
     # Limiti
     max_content_chars: int = 100000  # Max caratteri HTML da scansionare
     max_file_size_mb: int = 50  # Max dimensione PDF da scaricare
+    max_pdfs_per_site: int = 0  # Max PDF da scansionare per sito (0 = nessun limite)
 
     # Download
     download_delay_seconds: float = 0.5  # Pausa tra download
@@ -196,7 +197,7 @@ class OrchestratorConfig:
     at_keywords: List[str] = field(default_factory=lambda: AT_KEYWORDS.copy())
     
     # Report
-    report_output_dir: Path = field(default_factory=lambda: Path("./output"))
+    report_output_dir: Path = field(default_factory=lambda: Path(__file__).parent.parent / "output")
     report_filename: str = "analysis_report"
     
     def add_required_section(self, name: str, keywords: List[str]) -> None:
