@@ -165,6 +165,8 @@ class Orchestrator:
                 ConsoleReporter(site_output_dir),
                 JsonReporter(site_output_dir),
             ]
+            # Ricrea anche l'analyzer con la nuova configurazione
+            self.analyzer = Analyzer(self.config)
             print(f"[OUTPUT] Directory: {site_output_dir}")
 
         # Normalizza URL
@@ -411,6 +413,13 @@ Esempi:
         help="In modalità batch, riprende saltando i siti già analizzati"
     )
 
+    parser.add_argument(
+        "--limit-pdf",
+        type=int,
+        default=0,
+        help="Limita il numero di PDF da scansionare per sito (0 = nessun limite)"
+    )
+
     return parser.parse_args()
 
 
@@ -468,6 +477,10 @@ def main():
     # NON sovrascrivere config.crawl.output_dir - deve corrispondere a dove il spider salva
     # Solo il report_output_dir viene configurato dall'utente
     config.report_output_dir = Path(args.output_dir)
+
+    # Limite PDF per sito
+    if args.limit_pdf > 0:
+        config.privacy.max_pdfs_per_site = args.limit_pdf
 
     # Crawler directory
     crawler_dir = Path(args.crawler_dir) if args.crawler_dir else None

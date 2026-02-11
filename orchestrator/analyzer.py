@@ -42,6 +42,7 @@ class Analyzer:
                 max_file_size_mb=self.config.privacy.max_file_size_mb,
                 download_delay=self.config.privacy.download_delay_seconds,
                 download_timeout=self.config.privacy.download_timeout_seconds,
+                max_pdfs_per_site=self.config.privacy.max_pdfs_per_site,
             )
             self.privacy_analyzer = PrivacyAnalyzer(privacy_config)
     

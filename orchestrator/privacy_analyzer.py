@@ -28,6 +28,7 @@ class PrivacyAnalysisConfig:
     download_delay: float = 0.5  # Secondi tra i download
     download_timeout: int = 30  # Timeout per singolo download
     max_file_size_mb: int = 50  # Max dimensione file da scaricare
+    max_pdfs_per_site: int = 0  # Max PDF da scansionare per sito (0 = nessun limite)
 
     # Scan settings
     scan_html: bool = True  # Scansiona contenuto HTML
@@ -180,7 +181,14 @@ class PrivacyAnalyzer:
                 if any(file_type.endswith(ext) or ext in file_type for ext in self.config.scannable_extensions):
                     file_urls.append((url, node_data))
 
-        print(f"[Privacy] Trovati {len(file_urls)} file da analizzare")
+        total_found = len(file_urls)
+
+        # Limita numero PDF se configurato
+        if self.config.max_pdfs_per_site > 0 and total_found > self.config.max_pdfs_per_site:
+            file_urls = file_urls[:self.config.max_pdfs_per_site]
+            print(f"[Privacy] Trovati {total_found} file, limitato a {self.config.max_pdfs_per_site}")
+        else:
+            print(f"[Privacy] Trovati {total_found} file da analizzare")
 
         if not file_urls:
             return

@@ -1,22 +1,5 @@
-# Comuni
-https://www.comune.piedimulera.vb.it/it-it/home
-https://www.comune.milano.it
+# Esempi di siti PA per test
+# Esegui: uv run python orchestrator/main.py --batch --sites-file ./input/esempio_siti.txt
 
-# Regioni
-https://www.regione.piemonte.it
-https://www.regione.lazio.it
-
-# Ministeri
-https://www.interno.gov.it
-https://www.istruzione.it
-
-# Agenzie/Enti
-https://www.agenziaentrate.gov.it
-https://www.inps.it
-
-# Universita
-https://www.unimi.it
-https://www.unito.it
-
-# ASL/Sanita
-https://www.aslcittaditorino.it
+https://www.comune.piedimulera.vb.it
+https://comune.domodossola.vb.it
