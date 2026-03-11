@@ -25,12 +25,12 @@ COLORS = {
     'cyan': '#17A2B8',         # Cyan (trasparenza)
 }
 
-# Colori per rischio privacy
+# Colori per rischio privacy (palette espressiva)
 PRIVACY_COLORS = {
-    'high': '#dc2626',     # Rosso
-    'medium': '#f59e0b',   # Arancione
-    'low': '#fbbf24',      # Giallo
-    'none': '#22c55e',     # Verde
+    'high': '#9B1B30',     # Bordeaux scuro - pericolo inequivocabile
+    'medium': '#D4782F',   # Ambra scuro - rischio moderato
+    'low': '#5A9A68',      # Verde salvia - rischio basso
+    'none': '#3A7CA5',     # Blu acciaio - nessun rischio
 }
 
 # Colori per trasparenza
@@ -182,14 +182,17 @@ def create_bar_chart(
     return buffer
 
 
-def create_privacy_pie_chart(
+def create_privacy_risk_chart(
     high: int,
     medium: int,
     low: int,
     none: int = 0
 ) -> BytesIO:
     """
-    Crea pie chart specifico per distribuzione rischio privacy.
+    Crea un horizontal bar chart con barre separate per distribuzione rischio privacy.
+
+    Ogni livello di rischio ha la propria barra orizzontale, con il valore
+    assoluto etichettato a destra. Più leggibile del pie chart per confronti.
 
     Args:
         high: Conteggio rischio alto
@@ -200,24 +203,120 @@ def create_privacy_pie_chart(
     Returns:
         BytesIO contenente l'immagine PNG
     """
-    data = {
-        'Alto': high,
-        'Medio': medium,
-        'Basso': low,
+    # Prepara dati (include tutti, anche se zero)
+    labels = ['Alto', 'Medio', 'Basso']
+    values = [high, medium, low]
+    chart_colors = [
+        PRIVACY_COLORS['high'],
+        PRIVACY_COLORS['medium'],
+        PRIVACY_COLORS['low'],
+    ]
+
+    total = sum(values)
+    if total == 0:
+        return _create_empty_chart("Nessun rischio privacy rilevato", (5, 2.5))
+
+    fig, ax = plt.subplots(figsize=(5, 2.5), facecolor='white')
+
+    # Barre orizzontali separate
+    y_pos = range(len(labels))
+    bars = ax.barh(y_pos, values, color=chart_colors, edgecolor='white',
+                   linewidth=0.5, height=0.6)
+
+    # Etichette con valore assoluto e percentuale a destra di ogni barra
+    max_val = max(values) if values else 1
+    for bar, value in zip(bars, values):
+        pct = value / total * 100 if total > 0 else 0
+        ax.text(bar.get_width() + max_val * 0.02, bar.get_y() + bar.get_height() / 2,
+                f'  {value}  ({pct:.0f}%)',
+                va='center', ha='left', fontsize=9, fontweight='bold')
+
+    # Styling
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(labels, fontsize=10, fontweight='bold')
+    ax.invert_yaxis()  # Alto in cima
+    ax.set_xlim(0, max_val * 1.35)  # Spazio per etichette
+    ax.set_xlabel(f'Nodi con rischio (totale: {total})', fontsize=9)
+    ax.set_title('Distribuzione Rischio Privacy', fontsize=11,
+                 fontweight='bold', pad=10)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    plt.tight_layout()
+
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight',
+                facecolor='white', edgecolor='none')
+    buffer.seek(0)
+    plt.close(fig)
+
+    return buffer
+
+
+def create_findings_chart(findings_by_type: Dict[str, int]) -> BytesIO:
+    """
+    Crea un horizontal bar chart per i tipi di dati sensibili trovati.
+    Stile identico a create_privacy_risk_chart per coerenza visiva.
+    Colore: blu PA uniforme per tutte le barre.
+
+    Args:
+        findings_by_type: Dizionario {pattern_type: count_occorrenze}
+
+    Returns:
+        BytesIO contenente l'immagine PNG
+    """
+    label_map = {
+        'codice_fiscale': 'Cod. Fiscale',
+        'iban':           'IBAN',
+        'email':          'Email',
+        'telefono':       'Telefono',
+        'indirizzo':      'Indirizzo',
     }
 
-    colors = {
-        'Alto': PRIVACY_COLORS['high'],
-        'Medio': PRIVACY_COLORS['medium'],
-        'Basso': PRIVACY_COLORS['low'],
-    }
+    # Ordina per valore decrescente
+    sorted_items = sorted(findings_by_type.items(), key=lambda x: -x[1])
+    labels = [label_map.get(k, k.capitalize()) for k, _ in sorted_items]
+    values = [v for _, v in sorted_items]
 
-    return create_pie_chart(
-        data,
-        title="Distribuzione Rischio Privacy",
-        colors=colors,
-        figsize=(3.5, 3.5)
-    )
+    total = sum(values)
+    if total == 0:
+        return _create_empty_chart("Nessun dato sensibile trovato", (5, 2.5))
+
+    # Stesso figsize di create_privacy_risk_chart
+    fig, ax = plt.subplots(figsize=(5, 2.5), facecolor='white')
+
+    y_pos = range(len(labels))
+    # Colore blu PA uniforme, stesso stile barre
+    bars = ax.barh(y_pos, values, color=COLORS['primary'], edgecolor='white',
+                   linewidth=0.5, height=0.6)
+
+    # Etichette bold a destra (stesso stile di create_privacy_risk_chart)
+    max_val = max(values) if values else 1
+    for bar, value in zip(bars, values):
+        ax.text(bar.get_width() + max_val * 0.02, bar.get_y() + bar.get_height() / 2,
+                f'  {value}',
+                va='center', ha='left', fontsize=9, fontweight='bold')
+
+    # Styling identico a create_privacy_risk_chart
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(labels, fontsize=10, fontweight='bold')
+    ax.invert_yaxis()
+    ax.set_xlim(0, max_val * 1.35)
+    ax.set_xlabel(f'Occorrenze totali: {total}', fontsize=9)
+    ax.set_title('Tipi di Dati Sensibili Trovati', fontsize=11,
+                 fontweight='bold', pad=10)
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+    plt.tight_layout()
+
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png', dpi=150, bbox_inches='tight',
+                facecolor='white', edgecolor='none')
+    buffer.seek(0)
+    plt.close(fig)
+
+    return buffer
 
 
 def create_transparency_bar_chart(

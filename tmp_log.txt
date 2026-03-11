@@ -1,0 +1,16 @@
+Caricamento dati da: C:\Users\andrea\Desktop\Tesi\output\comune.piedimulera.vb.it\analysis_report.json
+  Homepage: https://www.comune.piedimulera.vb.it
+  Score: 98.5/100 (Ottimo)
+  Privacy: H=14, M=75, L=103
+
+--- Generazione analysis_report.pdf ---
+  OK: C:\Users\andrea\Desktop\Tesi\output\test_pdf_regen\analysis_report.pdf
+
+--- Generazione privacy_report.pdf ---
+  OK: C:\Users\andrea\Desktop\Tesi\output\test_pdf_regen\privacy_report.pdf
+
+=== PDF generati in: C:\Users\andrea\Desktop\Tesi\output\test_pdf_regen ===
+Apri i PDF per verificare:
+  1) Voto centrato verticalmente
+  2) Nuovi colori rischio (bordeaux/ambra/blu)
+  3) Stacked bar chart al posto del pie chart

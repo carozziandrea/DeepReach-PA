@@ -27,21 +27,22 @@ class NodeStyle:
 
 
 class NodeStyler:
-    # Palette colori
+    # Palette colori — ogni tipo ha un colore unico con hue >30° di distanza
     COLORS = {
-        "blue": "#4A90E2",
-        "orange": "#F5A623",
-        "red": "#D0021B",
-        "green": "#7ED321",
-        "purple": "#9D65C9",
-        "cyan": "#17A2B8",  # Per sezioni trasparenza obbligatorie
+        "blue": "#2196F3",      # Blu intenso (start/homepage)
+        "grey": "#CFD8DC",      # Grigio chiarissimo (pagine normali)
+        "green": "#43A047",     # Verde bosco (sezioni trasparenza)
+        "lime": "#8BC34A",      # Verde lime (file scaricabili)
+        "red": "#E53935",       # Rosso (link rotti)
+        "purple": "#AB47BC",    # Viola (contenuto dinamico)
+        "amber": "#FFA726",     # Ambra (in attesa)
     }
 
-    # Colori bordo per rischio privacy
+    # Colori bordo per rischio privacy (coerente con palette PDF)
     PRIVACY_BORDER_COLORS = {
-        "high": "#FF0000",    # Rosso
-        "medium": "#FFA500",  # Arancione
-        "low": "#FFD700",     # Giallo/oro
+        "high": "#9B1B30",    # Bordeaux scuro
+        "medium": "#D4782F",  # Ambra scuro
+        "low": "#3A7CA5",     # Blu acciaio
         "none": None,         # Nessun bordo speciale
     }
 
@@ -52,10 +53,10 @@ class NodeStyler:
         "none": 1,
     }
 
-    # Configurazioni per tipo di nodo
+    # Configurazioni per tipo di nodo — ogni tipo ha forma e colore UNICI
     STYLES = {
         "start": {
-            "color": COLORS["red"],
+            "color": COLORS["blue"],
             "shape": "star",
             "emoji": "🏠",
             "border_width": 3,
@@ -67,8 +68,8 @@ class NodeStyler:
             "border_width": 1,
         },
         "file": {
-            "color": COLORS["green"],
-            "shape": "dot",
+            "color": COLORS["lime"],
+            "shape": "hexagon",
             "emoji": "📄",
             "border_width": 1,
         },
@@ -79,20 +80,20 @@ class NodeStyler:
             "border_width": 3,
         },
         "pending": {
-            "color": COLORS["orange"],
-            "shape": "dot",
+            "color": COLORS["amber"],
+            "shape": "triangleDown",
             "emoji": "⏳",
             "border_width": 1,
         },
         "ok": {
-            "color": COLORS["blue"],
+            "color": COLORS["grey"],
             "shape": "dot",
             "emoji": "✓",
             "border_width": 1,
         },
         "transparency": {
-            "color": COLORS["cyan"],
-            "shape": "dot",
+            "color": COLORS["green"],
+            "shape": "square",
             "emoji": "📋",
             "border_width": 2,
         },

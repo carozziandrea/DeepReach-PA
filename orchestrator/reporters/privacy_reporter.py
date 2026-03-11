@@ -391,43 +391,30 @@ class PrivacyPDFReporter(BaseReporter):
             risk_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), PA_BLUE),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                ('BACKGROUND', (0, 1), (-1, 1), colors.Color(1, 0.8, 0.8)),  # Light red
-                ('BACKGROUND', (0, 2), (-1, 2), colors.Color(1, 0.9, 0.8)),  # Light orange
-                ('BACKGROUND', (0, 3), (-1, 3), colors.Color(1, 1, 0.8)),    # Light yellow
-                ('BACKGROUND', (0, 4), (-1, 4), colors.Color(0.8, 1, 0.8)),  # Light green
+                ('BACKGROUND', (0, 1), (-1, 1), colors.Color(0.92, 0.82, 0.84)),  # Bordeaux chiaro
+                ('BACKGROUND', (0, 2), (-1, 2), colors.Color(0.95, 0.88, 0.78)),  # Ambra chiaro
+                ('BACKGROUND', (0, 3), (-1, 3), colors.Color(0.85, 0.93, 0.87)),  # Verde salvia chiaro - rischio basso
+                ('BACKGROUND', (0, 4), (-1, 4), colors.Color(0.82, 0.89, 0.94)),  # Blu acciaio chiaro - nessun rischio
                 ('FONTSIZE', (0, 0), (-1, -1), 10),
                 ('ALIGN', (1, 0), (-1, -1), 'CENTER'),
                 ('GRID', (0, 0), (-1, -1), 0.5, colors.lightgrey),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
             ]))
             story.append(risk_table)
-            story.append(Spacer(1, 15))
+            story.append(Spacer(1, 20))
 
-            # Pie chart se ci sono rischi
-            if privacy.high_risk_count + privacy.medium_risk_count + privacy.low_risk_count > 0:
-                try:
-                    from .chart_utils import create_privacy_pie_chart
-                    chart_buffer = create_privacy_pie_chart(
-                        privacy.high_risk_count,
-                        privacy.medium_risk_count,
-                        privacy.low_risk_count
-                    )
-                    chart_img = Image(chart_buffer, width=8*cm, height=8*cm)
-                    story.append(chart_img)
-                    story.append(Spacer(1, 15))
-                except Exception as e:
-                    story.append(Paragraph(f"[Grafico non disponibile: {e}]", normal_style))
-
-            # Findings by type
+            # Tipi di dati sensibili trovati (stessa pagina della distribuzione rischio)
+            pattern_labels = {
+                "codice_fiscale": "Codice Fiscale",
+                "iban": "IBAN",
+                "email": "Email",
+                "telefono": "Telefono",
+                "indirizzo": "Indirizzo",
+            }
             if privacy.findings_by_type:
                 story.append(Paragraph("Tipi di Dati Sensibili Trovati", section_style))
                 findings_data = [["Tipo Pattern", "Occorrenze Totali"]]
-                pattern_labels = {
-                    "codice_fiscale": "Codice Fiscale",
-                    "iban": "IBAN",
-                    "email": "Email",
-                    "telefono": "Telefono",
-                    "indirizzo": "Indirizzo",
-                }
                 for pattern, count in sorted(privacy.findings_by_type.items(), key=lambda x: -x[1]):
                     label = pattern_labels.get(pattern, pattern.capitalize())
                     findings_data.append([label, str(count)])
@@ -442,7 +429,41 @@ class PrivacyPDFReporter(BaseReporter):
                     ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, LIGHT_GRAY]),
                 ]))
                 story.append(findings_table)
-                story.append(Spacer(1, 20))
+                story.append(Spacer(1, 10))
+
+            # Pagina con grafici a barre derivati dalle due tabelle
+            story.append(PageBreak())
+            story.append(Paragraph("Visualizzazioni Grafiche", section_style))
+            story.append(Spacer(1, 15))
+            try:
+                from .chart_utils import create_privacy_risk_chart, create_findings_chart
+
+                no_risk_chart = total - privacy.high_risk_count - privacy.medium_risk_count - privacy.low_risk_count
+
+                # Grafico 1: distribuzione rischio privacy
+                # figsize=(5, 2.5) → ratio 2:1 → 16cm × 8cm
+                chart1_buf = create_privacy_risk_chart(
+                    privacy.high_risk_count, privacy.medium_risk_count,
+                    privacy.low_risk_count, no_risk_chart
+                )
+                chart1_img = Image(chart1_buf, width=16*cm, height=8*cm)
+
+                if privacy.findings_by_type:
+                    # Grafico 2: tipi di dati sensibili (stesso stile di chart1, colore blu PA)
+                    # figsize=(5, 2.5) → ratio 2:1 → 16cm × 8cm
+                    chart2_buf = create_findings_chart(privacy.findings_by_type)
+                    chart2_img = Image(chart2_buf, width=16*cm, height=8*cm)
+
+                    # Grafici uno sopra l'altro
+                    story.append(chart1_img)
+                    story.append(Spacer(1, 40))
+                    story.append(chart2_img)
+                else:
+                    story.append(chart1_img)
+
+            except Exception as e:
+                story.append(Paragraph(f"[Grafici non disponibili: {e}]", normal_style))
+            story.append(Spacer(1, 20))
 
             # Sezione Suggerimenti di Remediation
             if privacy.remediation_suggestions:

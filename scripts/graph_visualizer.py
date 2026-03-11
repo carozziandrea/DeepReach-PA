@@ -303,7 +303,7 @@ class GraphVisualizer:
         }
 
         .legend-star {
-            color: #D0021B;
+            color: #2196F3;
             font-size: 14px;
         }
 
@@ -312,14 +312,54 @@ class GraphVisualizer:
             height: 0;
             border-left: 6px solid transparent;
             border-right: 6px solid transparent;
-            border-bottom: 12px solid #D0021B;
+            border-bottom: 12px solid #E53935;
+        }
+
+        .legend-triangle-down {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 12px solid #FFA726;
         }
 
         .legend-diamond {
             width: 10px;
             height: 10px;
-            background: #9D65C9;
+            background: #AB47BC;
             transform: rotate(45deg);
+        }
+
+        .legend-square {
+            width: 11px;
+            height: 11px;
+            border-radius: 2px;
+        }
+
+        .legend-hexagon {
+            width: 12px;
+            height: 7px;
+            position: relative;
+        }
+        .legend-hexagon:before {
+            content: "";
+            position: absolute;
+            top: -3px;
+            left: 2px;
+            width: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 3px solid #8BC34A;
+        }
+        .legend-hexagon:after {
+            content: "";
+            position: absolute;
+            bottom: -3px;
+            left: 2px;
+            width: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-top: 3px solid #8BC34A;
         }
 
         .legend-label {
@@ -354,9 +394,9 @@ class GraphVisualizer:
             border-top: 1px solid #eee;
         }
 
-        .privacy-high { color: #D0021B; }
-        .privacy-medium { color: #F5A623; }
-        .privacy-low { color: #F5D623; }
+        .privacy-high { color: #9B1B30; }
+        .privacy-medium { color: #D4782F; }
+        .privacy-low { color: #3A7CA5; }
 
         .control-btn {
             width: 100%;
@@ -408,48 +448,48 @@ class GraphVisualizer:
     def _generate_legend_html(self) -> str:
         """Genera l'HTML della legenda."""
         return '''
-        <div class="graph-panel" id="legend-panel">
-            <h3>Legenda</h3>
+    <div class="graph-panel" id="legend-panel">
+        <h3>Legenda</h3>
+        <div class="legend-item">
+            <div class="legend-symbol legend-star" style="color:#2196F3">★</div>
+            <span class="legend-label">Pagina iniziale</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-symbol"><div class="legend-square" style="background:#43A047"></div></div>
+            <span class="legend-label">Sezione trasparenza</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-symbol"><div class="legend-dot" style="background:#CFD8DC"></div></div>
+            <span class="legend-label">Pagina OK</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-symbol"><div class="legend-triangle"></div></div>
+            <span class="legend-label">Link rotto</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-symbol"><div class="legend-hexagon" style="background:#8BC34A"></div></div>
+            <span class="legend-label">File (PDF, etc.)</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-symbol"><div class="legend-diamond"></div></div>
+            <span class="legend-label">Contenuto dinamico</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-symbol"><div class="legend-triangle-down"></div></div>
+            <span class="legend-label">In attesa</span>
+        </div>
+        <div class="privacy-section">
+            <strong>Bordi Privacy:</strong>
             <div class="legend-item">
-                <div class="legend-symbol legend-star">★</div>
-                <span class="legend-label">Pagina iniziale</span>
+                <div class="legend-symbol"><div class="legend-dot" style="background:#fff;border:3px solid #9B1B30"></div></div>
+                <span class="legend-label privacy-high">Rischio ALTO</span>
             </div>
             <div class="legend-item">
-                <div class="legend-symbol"><div class="legend-dot" style="background:#17A2B8"></div></div>
-                <span class="legend-label">Sezione trasparenza</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-symbol"><div class="legend-dot" style="background:#4A90E2"></div></div>
-                <span class="legend-label">Pagina OK</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-symbol"><div class="legend-triangle"></div></div>
-                <span class="legend-label">Link rotto</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-symbol"><div class="legend-dot" style="background:#7ED321"></div></div>
-                <span class="legend-label">File (PDF, etc.)</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-symbol"><div class="legend-diamond"></div></div>
-                <span class="legend-label">Contenuto dinamico</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-symbol"><div class="legend-dot" style="background:#F5A623"></div></div>
-                <span class="legend-label">In attesa</span>
-            </div>
-            <div class="privacy-section">
-                <strong>Bordi Privacy:</strong>
-                <div class="legend-item">
-                    <div class="legend-symbol"><div class="legend-dot" style="background:#fff;border:3px solid #FF0000"></div></div>
-                    <span class="legend-label privacy-high">Rischio ALTO</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-symbol"><div class="legend-dot" style="background:#fff;border:2px solid #FFA500"></div></div>
-                    <span class="legend-label privacy-medium">Rischio MEDIO</span>
-                </div>
+                <div class="legend-symbol"><div class="legend-dot" style="background:#fff;border:2px solid #D4782F"></div></div>
+                <span class="legend-label privacy-medium">Rischio MEDIO</span>
             </div>
         </div>
+    </div>
 '''
 
     def _generate_stats_html(self, stats: dict) -> str:
@@ -523,11 +563,17 @@ class GraphVisualizer:
             <button class="control-btn" onclick="fitGraph()">Adatta alla vista</button>
             <button class="control-btn" onclick="togglePhysics()">Pausa/Riprendi fisica</button>
             <button class="control-btn" onclick="highlightBroken()">Evidenzia link rotti</button>
-            <button class="control-btn" onclick="highlightPrivacy()">Evidenzia rischio privacy</button>
-            <button class="control-btn" onclick="resetHighlight()">Reset evidenziazione</button>
+            <button class="control-btn" onclick="highlightPrivacy()">Evidenzia rischi privacy</button>
+            <button class="control-btn" onclick="resetHighlight()">Reset vista</button>
+            <div id="hidden-count" style="margin-top:8px;font-size:12px;color:#e74c3c;font-weight:bold;"></div>
+            <div style="margin-top:10px;font-size:11px;color:#666;border-top:1px solid #eee;padding-top:8px;">
+                <strong>Tip:</strong> Doppio click su un nodo per collassare/espandere i suoi figli
+            </div>
         </div>
         <script>
             var physicsEnabled = true;
+            var originalProps = {};  // Salva proprietà originali per reset
+            var collapsedNodes = {};  // nodeId -> [lista figli nascosti]
 
             function fitGraph() {
                 network.fit({animation: true});
@@ -538,10 +584,21 @@ class GraphVisualizer:
                 network.setOptions({physics: {enabled: physicsEnabled}});
             }
 
+            // Salva proprietà originali di un nodo (se non già salvate)
+            function saveOriginal(node) {
+                if (!originalProps[node.id]) {
+                    originalProps[node.id] = {
+                        size: node.size,
+                        borderWidth: node.borderWidth || 1
+                    };
+                }
+            }
+
             function highlightBroken() {
                 var nodes = network.body.data.nodes;
                 nodes.forEach(function(node) {
                     if (node.shape === 'triangle') {
+                        saveOriginal(node);
                         nodes.update({id: node.id, borderWidth: 5, size: node.size * 1.5});
                     }
                 });
@@ -550,15 +607,97 @@ class GraphVisualizer:
             function highlightPrivacy() {
                 var nodes = network.body.data.nodes;
                 nodes.forEach(function(node) {
-                    if (node.color && node.color.border && (node.color.border === '#FF0000' || node.color.border === '#FFA500')) {
+                    if (node.color && node.color.border && (node.color.border === '#9B1B30' || node.color.border === '#D4782F')) {
+                        saveOriginal(node);
                         nodes.update({id: node.id, size: node.size * 1.5});
                     }
                 });
             }
 
             function resetHighlight() {
+                var nodes = network.body.data.nodes;
+                // Ripristina proprietà originali
+                for (var id in originalProps) {
+                    nodes.update({
+                        id: id,
+                        size: originalProps[id].size,
+                        borderWidth: originalProps[id].borderWidth
+                    });
+                }
+                originalProps = {};
+
+                // Mostra tutti i nodi nascosti
+                nodes.forEach(function(node) {
+                    if (node.hidden) {
+                        nodes.update({id: node.id, hidden: false});
+                    }
+                });
+                collapsedNodes = {};
+                updateHiddenCount();
+
                 network.fit({animation: true});
-                location.reload();
             }
+
+            // Trova tutti i discendenti di un nodo (BFS sugli archi uscenti)
+            function getDescendants(nodeId) {
+                var edges = network.body.data.edges;
+                var descendants = [];
+                var queue = [nodeId];
+                var visited = {};
+                visited[nodeId] = true;
+
+                while (queue.length > 0) {
+                    var current = queue.shift();
+                    edges.forEach(function(edge) {
+                        if (edge.from === current && !visited[edge.to]) {
+                            visited[edge.to] = true;
+                            descendants.push(edge.to);
+                            queue.push(edge.to);
+                        }
+                    });
+                }
+                return descendants;
+            }
+
+            // Conta e mostra nodi nascosti
+            function updateHiddenCount() {
+                var count = 0;
+                network.body.data.nodes.forEach(function(node) {
+                    if (node.hidden) count++;
+                });
+                var el = document.getElementById('hidden-count');
+                if (el) {
+                    el.textContent = count > 0 ? count + ' nodi nascosti' : '';
+                }
+            }
+
+            // Doppio click: collassa/espandi figli
+            network.on('doubleClick', function(params) {
+                if (params.nodes.length === 0) return;
+
+                var nodeId = params.nodes[0];
+                var nodes = network.body.data.nodes;
+
+                if (collapsedNodes[nodeId]) {
+                    // Espandi: mostra i figli nascosti
+                    var hidden = collapsedNodes[nodeId];
+                    hidden.forEach(function(childId) {
+                        nodes.update({id: childId, hidden: false});
+                    });
+                    delete collapsedNodes[nodeId];
+                } else {
+                    // Collassa: nascondi tutti i discendenti
+                    var descendants = getDescendants(nodeId);
+                    if (descendants.length === 0) return;
+
+                    descendants.forEach(function(childId) {
+                        nodes.update({id: childId, hidden: true});
+                        // Se un figlio era a sua volta collassato, pulisci
+                        delete collapsedNodes[childId];
+                    });
+                    collapsedNodes[nodeId] = descendants;
+                }
+                updateHiddenCount();
+            });
         </script>
 '''

@@ -387,9 +387,11 @@ class FullAnalysisPDFReporter(BaseReporter):
 
             score_data = [[
                 Paragraph(f"<font size='28'><b>{u.score:.0f}</b></font><font size='14'>/100</font>",
-                         ParagraphStyle('score', alignment=TA_CENTER)),
+                         ParagraphStyle('score', alignment=TA_CENTER,
+                                        leading=36, spaceBefore=0, spaceAfter=0)),
                 Paragraph(f"<font size='16'><b>{u.rating}</b></font>",
-                         ParagraphStyle('rating', alignment=TA_CENTER))
+                         ParagraphStyle('rating', alignment=TA_CENTER,
+                                        leading=22, spaceBefore=0, spaceAfter=0))
             ]]
             score_table = Table(score_data, colWidths=[8*cm, 8*cm])
             score_table.setStyle(TableStyle([
@@ -398,8 +400,8 @@ class FullAnalysisPDFReporter(BaseReporter):
                 ('TEXTCOLOR', (0, 0), (0, 0), colors.white),
                 ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
                 ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('TOPPADDING', (0, 0), (-1, -1), 15),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+                ('TOPPADDING', (0, 0), (-1, -1), 20),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 20),
                 ('BOX', (0, 0), (-1, -1), 1, colors.lightgrey),
             ]))
             story.append(score_table)
@@ -428,7 +430,7 @@ class FullAnalysisPDFReporter(BaseReporter):
         # Page break
         story.append(PageBreak())
 
-        # ===== PAGINA 2: TRASPARENZA E GRAFICI =====
+        # ===== PAGINA 2: TRASPARENZA =====
 
         # Transparency Analysis
         if result.transparency:
@@ -478,45 +480,26 @@ class FullAnalysisPDFReporter(BaseReporter):
 
         story.append(Spacer(1, 20))
 
-        # Privacy Analysis
+        # Privacy Analysis (stessa pagina della trasparenza)
         if result.privacy:
             p = result.privacy
             story.append(Paragraph("Analisi Privacy", section_style))
 
-            # Tabella privacy
-            privacy_data = [
-                ["Livello Rischio", "Conteggio", ""],
-                ["ALTO", str(p.high_risk_count), ""],
-                ["MEDIO", str(p.medium_risk_count), ""],
-                ["BASSO", str(p.low_risk_count), ""],
-            ]
-            privacy_table = Table(privacy_data, colWidths=[6*cm, 3*cm, 6*cm])
-            privacy_table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), PA_BLUE),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
-                ('BACKGROUND', (0, 1), (1, 1), colors.Color(1, 0.8, 0.8)),  # Light red
-                ('BACKGROUND', (0, 2), (1, 2), colors.Color(1, 0.9, 0.8)),  # Light orange
-                ('BACKGROUND', (0, 3), (1, 3), colors.Color(1, 1, 0.8)),    # Light yellow
-                ('FONTSIZE', (0, 0), (-1, -1), 10),
-                ('ALIGN', (1, 0), (1, -1), 'CENTER'),
-                ('GRID', (0, 0), (1, -1), 0.5, colors.lightgrey),
-            ]))
-            story.append(privacy_table)
-            story.append(Spacer(1, 15))
-
-            # Grafico privacy
+            # Grafico privacy (barre orizzontali)
             if p.high_risk_count + p.medium_risk_count + p.low_risk_count > 0:
                 try:
-                    from .chart_utils import create_privacy_pie_chart
-                    chart_buffer = create_privacy_pie_chart(
+                    from .chart_utils import create_privacy_risk_chart
+                    chart_buffer = create_privacy_risk_chart(
                         p.high_risk_count,
                         p.medium_risk_count,
                         p.low_risk_count
                     )
-                    chart_img = Image(chart_buffer, width=9*cm, height=9*cm)
+                    chart_img = Image(chart_buffer, width=12*cm, height=6*cm)
                     story.append(chart_img)
                 except Exception as e:
                     story.append(Paragraph(f"[Grafico non disponibile: {e}]", normal_style))
+            else:
+                story.append(Paragraph("Nessun rischio privacy rilevato.", normal_style))
 
             story.append(Spacer(1, 10))
             story.append(Paragraph("<i>Vedi privacy_report.pdf per analisi dettagliata.</i>", normal_style))
@@ -524,19 +507,18 @@ class FullAnalysisPDFReporter(BaseReporter):
         # Page break
         story.append(PageBreak())
 
-        # ===== PAGINA 3: CRAWL STATISTICS =====
+        # ===== PAGINA 4: CRAWL STATISTICS =====
 
         story.append(Paragraph("Statistiche Crawl", section_style))
 
         if result.crawl_deep or result.crawl_shallow:
-            crawl_data = [["Tipo Crawl", "Stato", "Pagine", "Durata"]]
+            crawl_data = [["Tipo Crawl", "Stato", "Pagine"]]
             if result.crawl_deep:
                 status = "Completato" if result.crawl_deep.success else "Fallito"
                 crawl_data.append([
                     "Deep (sezione AT)",
                     status,
                     str(result.crawl_deep.total_pages),
-                    f"{result.crawl_deep.duration_seconds:.1f}s"
                 ])
             if result.crawl_shallow:
                 status = "Completato" if result.crawl_shallow.success else "Fallito"
@@ -544,10 +526,9 @@ class FullAnalysisPDFReporter(BaseReporter):
                     "Shallow (homepage)",
                     status,
                     str(result.crawl_shallow.total_pages),
-                    f"{result.crawl_shallow.duration_seconds:.1f}s"
                 ])
 
-            crawl_table = Table(crawl_data, colWidths=[5*cm, 3*cm, 3*cm, 3*cm])
+            crawl_table = Table(crawl_data, colWidths=[6*cm, 4*cm, 4*cm])
             crawl_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), PA_BLUE),
                 ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
