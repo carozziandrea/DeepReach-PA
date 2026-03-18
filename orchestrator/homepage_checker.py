@@ -72,11 +72,19 @@ class HomepageChecker:
 
                 # Naviga alla homepage
                 timeout_ms = self.config.crawl.page_load_timeout * 1000
-                await page.goto(
-                    homepage_url,
-                    wait_until='networkidle',
-                    timeout=timeout_ms
-                )
+                try:
+                    await page.goto(
+                        homepage_url,
+                        wait_until='networkidle',
+                        timeout=timeout_ms
+                    )
+                except PlaywrightTimeout:
+                    # Fallback: usa domcontentloaded per siti che non raggiungono networkidle
+                    await page.goto(
+                        homepage_url,
+                        wait_until='domcontentloaded',
+                        timeout=timeout_ms
+                    )
 
                 # Attendi rendering JS
                 wait_ms = self.config.crawl.js_render_wait * 1000
@@ -97,31 +105,34 @@ class HomepageChecker:
                 # Cerca link AT basandosi SOLO sul testo visibile del link
                 # (non sull'href, altrimenti matcheremmo sottopagine)
 
-                # Prima passa: cerca match esatti ("amministrazione trasparente")
+                exact_keywords = [
+                    "amministrazione trasparente",
+                    "amministrazione-trasparente",
+                ]
+                partial_keywords = ["trasparenza", "trasparente"]
+                href_keywords = [
+                    "amministrazione-trasparente",
+                    "amministrazione_trasparente",
+                    "amministrazione.trasparente",
+                    "amm-trasp",
+                    "amm_trasp",
+                ]
+
+                # Prima passa: cerca match esatti nel testo visibile del link
                 for link in links:
                     link_text = link.get_text().lower().strip()
-                    link_text_clean = ' '.join(link_text.split())  # Normalizza spazi
-
-                    # Match esatto per le keyword più specifiche
-                    exact_keywords = [
-                        "amministrazione trasparente",
-                        "amministrazione-trasparente",
-                    ]
-
+                    link_text_clean = ' '.join(link_text.split())
                     for keyword in exact_keywords:
                         if keyword in link_text_clean:
                             href = link.get('href', '')
                             if href and not href.startswith('#') and not href.startswith('mailto:'):
                                 at_url = urljoin(homepage_url, href)
-                                return True, at_url, f"Trovato link AT (match esatto): '{link.get_text().strip()}'"
+                                return True, at_url, f"Trovato link AT (match esatto testo): '{link.get_text().strip()}'"
 
-                # Seconda passa: cerca match parziali ("trasparenza", "trasparente")
-                partial_keywords = ["trasparenza", "trasparente"]
-
+                # Seconda passa: cerca match parziali nel testo visibile
                 for link in links:
                     link_text = link.get_text().lower().strip()
                     link_text_clean = ' '.join(link_text.split())
-
                     for keyword in partial_keywords:
                         if keyword in link_text_clean:
                             # Evita falsi positivi: il testo non deve essere troppo lungo
@@ -130,7 +141,17 @@ class HomepageChecker:
                                 href = link.get('href', '')
                                 if href and not href.startswith('#') and not href.startswith('mailto:'):
                                     at_url = urljoin(homepage_url, href)
-                                    return True, at_url, f"Trovato link AT (match parziale): '{link.get_text().strip()}'"
+                                    return True, at_url, f"Trovato link AT (match parziale testo): '{link.get_text().strip()}'"
+
+                # Terza passa: cerca match nell'href (per link con testo non descrittivo o icone)
+                for link in links:
+                    href = link.get('href', '').lower()
+                    if not href or href.startswith('#') or href.startswith('mailto:'):
+                        continue
+                    for keyword in href_keywords:
+                        if keyword in href:
+                            at_url = urljoin(homepage_url, link.get('href', ''))
+                            return True, at_url, f"Trovato link AT (match href): '{href}'"
 
                 return False, None, "Nessun link Amministrazione Trasparente trovato"
 

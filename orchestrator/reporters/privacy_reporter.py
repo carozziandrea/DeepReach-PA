@@ -465,22 +465,24 @@ class PrivacyPDFReporter(BaseReporter):
                 story.append(Paragraph(f"[Grafici non disponibili: {e}]", normal_style))
             story.append(Spacer(1, 20))
 
-            # Sezione Suggerimenti di Remediation
+            # Sezione Suggerimenti di Adeguamento
             if privacy.remediation_suggestions:
                 # Colore arancione warning
                 WARNING_ORANGE = colors.Color(0.98, 0.9, 0.8)  # Light orange background
-
-                story.append(Paragraph("Suggerimenti per la Remediation", section_style))
-                story.append(Paragraph(
-                    "<i>In base ai dati sensibili trovati, si consiglia di:</i>",
-                    normal_style
-                ))
-                story.append(Spacer(1, 8))
 
                 # Box con suggerimenti
                 suggestions_data = []
                 for i, suggestion in enumerate(privacy.remediation_suggestions, 1):
                     suggestions_data.append([f"{i}.", suggestion])
+
+                keep_elements = [
+                    Paragraph("Suggerimenti per l'Adeguamento", section_style),
+                    Paragraph(
+                        "<i>In base ai dati sensibili trovati, si consiglia di:</i>",
+                        normal_style
+                    ),
+                    Spacer(1, 8),
+                ]
 
                 if suggestions_data:
                     suggestions_table = Table(suggestions_data, colWidths=[1*cm, 14*cm])
@@ -494,7 +496,10 @@ class PrivacyPDFReporter(BaseReporter):
                         ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
                         ('BOX', (0, 0), (-1, -1), 1, PA_ORANGE),
                     ]))
-                    story.append(suggestions_table)
+                    keep_elements.append(suggestions_table)
+
+                from reportlab.platypus import KeepTogether
+                story.append(KeepTogether(keep_elements))
 
                 story.append(Spacer(1, 10))
 

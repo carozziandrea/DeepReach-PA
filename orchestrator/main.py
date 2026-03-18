@@ -521,6 +521,8 @@ def main():
     # Esegui
     orchestrator = Orchestrator(config, crawler_dir)
 
+    site_output_dir = get_site_output_dir(config.crawl.output_dir, args.homepage_url)
+
     try:
         result = orchestrator.run(
             homepage_url=args.homepage_url,
@@ -529,6 +531,7 @@ def main():
             deep_only=args.deep_only,
             at_url_override=args.at_url,
             thorough=args.thorough,
+            site_output_dir=site_output_dir,
         )
 
         # Exit code basato sul risultato

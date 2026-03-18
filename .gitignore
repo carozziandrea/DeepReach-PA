@@ -45,3 +45,6 @@ nul
 
 # Input di test
 input/lista_siti.txt
+
+# Script di utility
+regen_*

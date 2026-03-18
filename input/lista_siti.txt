@@ -1,5 +1,8 @@
 # Esempi di siti PA per test
-# Esegui: uv run python orchestrator/main.py --batch --sites-file ./input/esempio_siti.txt
+# Esegui: uv run python orchestrator/main.py --batch --sites-file ./input/lista_siti.txt
 
-https://www.comune.piedimulera.vb.it
-https://comune.domodossola.vb.it
+https://www.comune.montefiascone.vt.it
+https://www.comune.cingoli.mc.it
+https://www.comune.bagnacavallo.ra.it
+https://www.comune.soave.vr.it
+https://www.comune.spilimbergo.pn.it

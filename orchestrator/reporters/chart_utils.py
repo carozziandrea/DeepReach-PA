@@ -162,10 +162,10 @@ def create_bar_chart(
     for bar, value in zip(bars, values):
         if horizontal:
             ax.text(bar.get_width() + 0.3, bar.get_y() + bar.get_height()/2,
-                    str(value), va='center', fontsize=9)
+                    str(value), va='center', fontsize=9, fontweight='bold')
         else:
             ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.3,
-                    str(value), ha='center', fontsize=9)
+                    str(value), ha='center', fontsize=9, fontweight='bold')
 
     ax.set_title(title, fontsize=11, fontweight='bold', pad=10)
     ax.spines['top'].set_visible(False)
@@ -233,7 +233,7 @@ def create_privacy_risk_chart(
 
     # Styling
     ax.set_yticks(y_pos)
-    ax.set_yticklabels(labels, fontsize=10, fontweight='bold')
+    ax.set_yticklabels(labels, fontsize=10)
     ax.invert_yaxis()  # Alto in cima
     ax.set_xlim(0, max_val * 1.35)  # Spazio per etichette
     ax.set_xlabel(f'Nodi con rischio (totale: {total})', fontsize=9)
@@ -299,7 +299,7 @@ def create_findings_chart(findings_by_type: Dict[str, int]) -> BytesIO:
 
     # Styling identico a create_privacy_risk_chart
     ax.set_yticks(y_pos)
-    ax.set_yticklabels(labels, fontsize=10, fontweight='bold')
+    ax.set_yticklabels(labels, fontsize=10)
     ax.invert_yaxis()
     ax.set_xlim(0, max_val * 1.35)
     ax.set_xlabel(f'Occorrenze totali: {total}', fontsize=9)

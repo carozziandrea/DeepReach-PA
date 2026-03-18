@@ -20,40 +20,120 @@ from pathlib import Path
 # Per aggiungere una nuova sezione, basta aggiungere una riga al dizionario.
 
 REQUIRED_SECTIONS: Dict[str, List[str]] = {
+    # 1 - Disposizioni generali
+    "disposizioni_generali": [
+        "disposizioni-generali", "piano-triennale", "piano-prevenzione",
+        "anticorruzione", "ptpct", "ptpc", "codice-etico", "codice-comportamento",
+        "regolamenti"
+    ],
+    # 2 - Organizzazione
     "organizzazione": [
         "organi", "uffici", "organigramma", "organizzazione",
         "struttura", "articolazione"
     ],
-    "bilanci": [
-        "bilancio", "bilanci", "rendiconto", "piano-indicatori",
-        "patrimonio", "spese", "entrate"
+    # 3 - Consulenti e collaboratori
+    "consulenti": [
+        "consulenti", "collaboratori", "incarichi", "professionisti"
     ],
+    # 4 - Personale
     "personale": [
         "personale", "dotazione", "dirigenti", "posizioni-organizzative",
         "contrattazione", "assenze", "tassi-assenza"
     ],
-    "bandi_gare": [
-        "bandi", "gare", "concorsi", "avvisi", "appalti",
-        "contratti", "procedure"
+    # 5 - Bandi di concorso
+    "bandi_concorso": [
+        "bandi-concorso", "concorsi", "selezioni", "avvisi-selezione",
+        "graduatorie"
     ],
-    "delibere_atti": [
-        "delibere", "determine", "atti", "provvedimenti",
-        "ordinanze", "decreti"
-    ],
-    "albo_pretorio": [
-        "albo", "pretorio", "albo-pretorio", "pubblicazioni"
-    ],
-    "consulenti": [
-        "consulenti", "collaboratori", "incarichi", "professionisti"
-    ],
-    "sovvenzioni": [
-        "sovvenzioni", "contributi", "sussidi", "vantaggi-economici"
-    ],
+    # 6 - Performance
     "performance": [
         "performance", "obiettivi", "valutazione", "piano-performance"
     ],
+    # 7 - Enti controllati
+    "enti_controllati": [
+        "enti-controllati", "societa-partecipate", "partecipate",
+        "enti-pubblici", "fondazioni", "associazioni-partecipate",
+        "rappresentazione-grafica"
+    ],
+    # 8 - Attività e procedimenti
     "attivita_procedimenti": [
-        "procedimenti", "attivita", "servizi", "modulistica", "tempi"
+        "procedimenti", "attivita", "modulistica", "tempi",
+        "tipologie-procedimento"
+    ],
+    # 9 - Provvedimenti
+    "provvedimenti": [
+        "provvedimenti", "delibere", "determine", "ordinanze",
+        "decreti", "atti-dirigenziali", "atti-organi-indirizzo"
+    ],
+    # 10 - Controlli sulle imprese
+    "controlli_imprese": [
+        "controlli-imprese", "controlli-sulle-imprese",
+        "autorizzazioni", "concessioni"
+    ],
+    # 11 - Bandi di gara e contratti
+    "bandi_gare": [
+        "bandi-gara", "gare", "appalti", "contratti",
+        "procedure-negoziate", "affidamenti"
+    ],
+    # 12 - Sovvenzioni, contributi, sussidi, vantaggi economici
+    "sovvenzioni": [
+        "sovvenzioni", "contributi", "sussidi", "vantaggi-economici",
+        "benefici-economici"
+    ],
+    # 13 - Bilanci
+    "bilanci": [
+        "bilancio", "bilanci", "rendiconto", "piano-indicatori",
+        "patrimonio", "spese", "entrate"
+    ],
+    # 14 - Beni immobili e gestione patrimonio
+    "beni_immobili": [
+        "beni-immobili", "patrimonio-immobiliare", "canoni-locazione",
+        "canoni-affitto", "beni-demaniali"
+    ],
+    # 15 - Controlli e rilievi sull'amministrazione
+    "controlli_amministrazione": [
+        "controlli-rilievi", "organi-revisione", "corte-dei-conti",
+        "relazioni-revisori", "nuclei-valutazione"
+    ],
+    # 16 - Servizi erogati
+    "servizi_erogati": [
+        "servizi-erogati", "carta-servizi", "costi-contabilizzati",
+        "liste-attesa", "tempi-medi-erogazione"
+    ],
+    # 17 - Pagamenti dell'amministrazione
+    "pagamenti": [
+        "pagamenti", "indicatore-tempestivita", "iban",
+        "pagamento-informatico", "dati-pagamenti"
+    ],
+    # 18 - Opere pubbliche
+    "opere_pubbliche": [
+        "opere-pubbliche", "lavori-pubblici", "nuclei-valutazione-verifica",
+        "oopp"
+    ],
+    # 19 - Pianificazione e governo del territorio
+    "pianificazione_territorio": [
+        "pianificazione-territorio", "governo-territorio",
+        "piano-urbanistico", "prg", "pgt", "strumenti-urbanistici"
+    ],
+    # 20 - Informazioni ambientali
+    "informazioni_ambientali": [
+        "informazioni-ambientali", "ambiente", "vinca", "via",
+        "valutazione-impatto-ambientale"
+    ],
+    # 21 - Interventi straordinari e di emergenza
+    "interventi_emergenza": [
+        "emergenza", "interventi-straordinari", "protezione-civile",
+        "calamita", "commissari"
+    ],
+    # 22 - Altri contenuti - Accesso civico
+    "accesso_civico": [
+        "accesso-civico", "accesso-generalizzato", "foia",
+        "accesso-documenti", "richieste-accesso"
+    ],
+    # 23 - Altri contenuti - Accessibilità e dati
+    "accessibilita_dati": [
+        "accessibilita", "catalogo-dati", "open-data", "dati-aperti",
+        "metadati", "banche-dati"
     ],
 }
 

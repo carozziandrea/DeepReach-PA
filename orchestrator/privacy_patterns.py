@@ -53,10 +53,7 @@ PRIVACY_PATTERNS: Dict[str, str] = {
     "email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b",
 
     # Telefono italiano (fisso e mobile, con prefisso +39)
-    "telefonopiu": r"\b(?:\+39\s?)?(?:0\d{1,4}[\s.-]?\d{5,8}|\d{3}[\s.-]?\d{6,7})\b",
-
-    # Telefono italiano (fisso e mobile, con prefisso 0039)
-    "telefono00": r"\b(?:0039\s?)?(?:0\d{1,4}[\s.-]?\d{5,8}|\d{3}[\s.-]?\d{6,7})\b",
+    "telefono": r"\b(?:\+39\s?)?(?:0\d{1,4}[\s.-]?\d{5,8}|\d{3}[\s.-]?\d{6,7})\b",
 
     # Indirizzo (via, piazza, corso, viale, largo + nome + numero civico)
     "indirizzo": r"\b(?:via|piazza|corso|viale|largo|vicolo|piazzale)\s+[A-Za-z\s']+,?\s*\d{1,5}(?:\s*[a-zA-Z])?\b",

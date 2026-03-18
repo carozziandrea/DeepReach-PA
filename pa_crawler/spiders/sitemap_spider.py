@@ -163,7 +163,12 @@ class SiteMapSpider(scrapy.Spider):
         else:
             # Leggi URL da lista_siti.txt
             self.start_urls = self._load_urls_from_file()
-        self.allowed_domain = urlparse(self.start_urls[0]).netloc
+        start_netloc = urlparse(self.start_urls[0]).netloc
+        self.allowed_domain = start_netloc
+        # Calcola il dominio radice (es. "comune.torino.it" da "trasparenza.comune.torino.it")
+        # per permettere il crawling di sottodomini dello stesso ente
+        parts = start_netloc.split('.')
+        self.allowed_root_domain = '.'.join(parts[-3:]) if len(parts) >= 3 else start_netloc
         self.visited_urls = set()
         self.site_tree = {}
 
@@ -321,7 +326,7 @@ class SiteMapSpider(scrapy.Spider):
                     'playwright_context': 'default',  # Riutilizza lo stesso contesto
                     'playwright_page_methods': [
                         # Aspetta che la rete sia inattiva (nessuna richiesta per 500ms)
-                        PageMethod('wait_for_load_state', 'networkidle'),
+                        PageMethod('wait_for_load_state', 'domcontentloaded'),
                     ],
                 }
             )
@@ -518,8 +523,8 @@ class SiteMapSpider(scrapy.Spider):
                             self.site_tree[current_url]['children'].append(abs_url)
                     continue
                 
-                # Link normale
-                if parsed.netloc == self.allowed_domain:
+                # Link normale — accetta stesso dominio o qualsiasi sottodominio
+                if parsed.netloc == self.allowed_domain or parsed.netloc.endswith('.' + self.allowed_root_domain):
                     # ========== FILTRO HOMEPAGE: solo in mode deep ==========
                     if self.block_homepage and abs_url == self.homepage_url:
                         self.stats_homepage_skipped += 1
@@ -568,7 +573,7 @@ class SiteMapSpider(scrapy.Spider):
                                 'playwright_context': 'default',  # Riutilizza lo stesso contesto
                                 'playwright_page_methods': [
                                     # Aspetta che la rete sia inattiva (nessuna richiesta per 500ms)
-                                    PageMethod('wait_for_load_state', 'networkidle'),
+                                    PageMethod('wait_for_load_state', 'domcontentloaded'),
                                 ],
                                 'parent_url': current_url,
                                 'depth': next_depth
