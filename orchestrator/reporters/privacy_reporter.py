@@ -537,7 +537,10 @@ class PrivacyPDFReporter(BaseReporter):
 
                 for i, url in enumerate(privacy.high_risk_urls[:30], 1):
                     display_url = url if len(url) < 75 else url[:72] + "..."
-                    story.append(Paragraph(f"<b>{i}.</b> {display_url}", normal_style))
+                    story.append(Paragraph(
+                        f"<b>{i}.</b> <link href='{url}'>{display_url}</link>",
+                        normal_style
+                    ))
 
                 if len(privacy.high_risk_urls) > 30:
                     story.append(Spacer(1, 10))
@@ -553,7 +556,10 @@ class PrivacyPDFReporter(BaseReporter):
                 story.append(Paragraph("URL a Rischio Medio", section_style))
                 for i, url in enumerate(privacy.medium_risk_urls[:20], 1):
                     display_url = url if len(url) < 75 else url[:72] + "..."
-                    story.append(Paragraph(f"<b>{i}.</b> {display_url}", normal_style))
+                    story.append(Paragraph(
+                        f"<b>{i}.</b> <link href='{url}'>{display_url}</link>",
+                        normal_style
+                    ))
 
                 if len(privacy.medium_risk_urls) > 20:
                     story.append(Paragraph(

@@ -175,41 +175,49 @@ class NodeStyler:
         return "\n".join(lines)
 
     @classmethod
+    def _truncate_url(cls, url: str, max_len: int = 80) -> str:
+        """Tronca un URL lungo per il tooltip."""
+        if len(url) <= max_len:
+            return url
+        return url[:max_len] + "..."
+
+    @classmethod
     def format_tooltip(
         cls, node: str, node_data: dict, node_type: str, degree: int
     ) -> str:
         status_code = node_data.get("status_code", "N/A")
         distance = node_data.get("distance", 0)
+        short_url = cls._truncate_url(node)
 
         # Sezione privacy (aggiunta in fondo al tooltip)
         privacy_section = cls.get_privacy_tooltip_section(node_data)
 
         if node_type == "start":
-            base = f"🏠 PAGINA INIZIALE\nURL: {node}\nDistanza: {distance}\nConnessioni: {degree}"
+            base = f"🏠 PAGINA INIZIALE\nURL: {short_url}\nDistanza: {distance}\nConnessioni: {degree}"
             return base + privacy_section
 
         elif node_type == "dynamic":
             dynamic_label = node_data.get("dynamic_label", "N/A")
-            base = f"🔄 CONTENUTO DINAMICO\nSezione: {dynamic_label}\nURL: {node}\nDistanza: {distance}\nConnessioni: {degree}"
+            base = f"🔄 CONTENUTO DINAMICO\nSezione: {dynamic_label}\nURL: {short_url}\nDistanza: {distance}\nConnessioni: {degree}"
             return base + privacy_section
 
         elif node_type == "file":
             file_type = node_data.get("file_type", "unknown")
-            base = f"📄 FILE SCARICABILE\nTipo: {file_type}\nURL: {node}\nDistanza: {distance}"
+            base = f"📄 FILE SCARICABILE\nTipo: {file_type}\nURL: {short_url}\nDistanza: {distance}"
             return base + privacy_section
 
         elif node_type == "broken":
             error_msg = node_data.get("error", "Errore sconosciuto")
-            base = f"❌ LINK ROTTO\nURL: {node}\nStatus: {status_code}\nDistanza: {distance}\nErrore: {error_msg}"
+            base = f"❌ LINK ROTTO\nURL: {short_url}\nStatus: {status_code}\nDistanza: {distance}\nErrore: {error_msg}"
             return base + privacy_section
 
         elif node_type == "transparency":
             section_name = node_data.get("transparency_section", "Sezione obbligatoria")
             title = node_data.get("title", "N/A")
-            base = f"📋 SEZIONE TRASPARENZA\nSezione: {section_name}\nURL: {node}\nTitolo: {title}\nDistanza: {distance}\nConnessioni: {degree}"
+            base = f"📋 SEZIONE TRASPARENZA\nSezione: {section_name}\nURL: {short_url}\nTitolo: {title}\nDistanza: {distance}\nConnessioni: {degree}"
             return base + privacy_section
 
         else:
             title = node_data.get("title", "N/A")
-            base = f"✓ URL: {node}\nStatus: {status_code}\nTitolo: {title}\nDistanza: {distance}\nConnessioni: {degree}"
+            base = f"✓ URL: {short_url}\nStatus: {status_code}\nTitolo: {title}\nDistanza: {distance}\nConnessioni: {degree}"
             return base + privacy_section

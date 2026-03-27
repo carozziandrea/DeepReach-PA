@@ -230,7 +230,6 @@ class FullAnalysisPDFReporter(BaseReporter):
         self,
         result: AnalysisResult,
         filename: Optional[str] = None,
-        graph_png_path: Optional[str] = None
     ) -> Optional[Path]:
         """
         Genera il report completo in formato PDF.
@@ -238,7 +237,6 @@ class FullAnalysisPDFReporter(BaseReporter):
         Args:
             result: Risultato dell'analisi
             filename: Nome del file output (senza estensione)
-            graph_png_path: Path opzionale all'immagine PNG del grafo da incorporare
         """
         try:
             from reportlab.lib import colors
@@ -591,28 +589,10 @@ class FullAnalysisPDFReporter(BaseReporter):
                 story.append(Paragraph("<b>Link rotti (primi 10):</b>", normal_style))
                 for url in q.broken_urls[:10]:
                     display_url = url if len(url) < 70 else url[:67] + "..."
-                    story.append(Paragraph(f"- {display_url}", normal_style))
-
-        # ===== PAGINA 4: MAPPA DEL SITO (se disponibile) =====
-
-        if graph_png_path and Path(graph_png_path).exists():
-            story.append(PageBreak())
-            story.append(Paragraph("Mappa del Sito", section_style))
-            story.append(Spacer(1, 10))
-            story.append(Paragraph(
-                "Visualizzazione del grafo delle pagine analizzate. "
-                "I colori indicano: blu = pagine funzionanti, rosso = link rotti/homepage, "
-                "verde = file, cyan = sezioni trasparenza.",
-                normal_style
-            ))
-            story.append(Spacer(1, 15))
-
-            try:
-                # Dimensione ottimizzata per A4
-                graph_img = Image(graph_png_path, width=16*cm, height=11*cm)
-                story.append(graph_img)
-            except Exception as e:
-                story.append(Paragraph(f"[Immagine grafo non disponibile: {e}]", normal_style))
+                    story.append(Paragraph(
+                        f"- <link href='{url}'>{display_url}</link>",
+                        normal_style
+                    ))
 
         # Build con header/footer
         doc.build(story, onFirstPage=add_header_footer, onLaterPages=add_header_footer)
@@ -622,7 +602,6 @@ class FullAnalysisPDFReporter(BaseReporter):
 def generate_full_reports(
     result: AnalysisResult,
     output_dir: Path = None,
-    graph_json_path: str = None
 ) -> Dict[str, Path]:
     """
     Genera tutti i report completi (TXT e PDF).
@@ -630,7 +609,6 @@ def generate_full_reports(
     Args:
         result: Risultato dell'analisi
         output_dir: Directory di output
-        graph_json_path: Path opzionale al file site_tree.json per generare immagine grafo
 
     Returns:
         Dizionario con i path dei file generati
@@ -645,39 +623,9 @@ def generate_full_reports(
     generated['txt'] = txt_path
     print(f"Full analysis report (TXT): {txt_path}")
 
-    # Genera immagine PNG del grafo (se disponibile)
-    graph_png_path = None
-    if graph_json_path and Path(graph_json_path).exists():
-        try:
-            # Import qui per evitare dipendenze circolari
-            import sys
-            scripts_dir = Path(__file__).parent.parent.parent / "scripts"
-            if str(scripts_dir) not in sys.path:
-                sys.path.insert(0, str(scripts_dir))
-
-            from graph_builder import GraphBuilder
-            from .chart_utils import export_graph_to_png
-
-            # Carica e costruisci il grafo
-            data = GraphBuilder.load_data(graph_json_path)
-            tree = data.get("tree", data)
-            start_url = GraphBuilder.find_root_node(tree)
-            G = GraphBuilder.build_graph(tree, start_url)
-            G_spt = GraphBuilder.create_shortest_path_tree(G, start_url)
-
-            # Esporta come PNG
-            png_path = output_dir / "graph_image.png"
-            result_png = export_graph_to_png(G_spt, png_path)
-            if result_png:
-                graph_png_path = result_png
-                generated['graph_png'] = Path(result_png)
-                print(f"Graph image (PNG): {result_png}")
-        except Exception as e:
-            print(f"[WARN] Impossibile generare immagine grafo: {e}")
-
     # Report PDF
     pdf_reporter = FullAnalysisPDFReporter(output_dir)
-    pdf_path = pdf_reporter.report(result, graph_png_path=graph_png_path)
+    pdf_path = pdf_reporter.report(result)
     if pdf_path:
         generated['pdf'] = pdf_path
         print(f"Full analysis report (PDF): {pdf_path}")
