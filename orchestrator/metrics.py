@@ -115,82 +115,110 @@ class MetricsCalculator:
         reachability: ReachabilityMetrics,
         quality: QualityMetrics,
         hidden_sections_count: int,
-        all_sections_in_at: bool
+        missing_sections_count: int,
+        sections_in_at: int,
+        total_required_sections: int,
+        sections_detail: list,
     ) -> UsabilityIndex:
         """
         Calcola l'indice di usabilità (0-100).
-        
-        Formula:
-            score = base - penalità_profondità - penalità_broken - penalità_hidden + bonus
-        
+
+        Il punteggio finale è una media ponderata tra:
+        - score_conformità: percentuale di sezioni obbligatorie presenti in AT
+        - score_usabilità: qualità tecnica (profondità, link rotti, sezioni sommerse/mancanti)
+
         Args:
             reachability: Metriche di raggiungibilità
             quality: Metriche di qualità
             hidden_sections_count: Numero di sezioni fuori da AT
-            all_sections_in_at: True se tutte le sezioni sono in AT
-        
+            missing_sections_count: Numero di sezioni completamente assenti
+            sections_in_at: Numero di sezioni correttamente in AT
+            total_required_sections: Numero totale di sezioni obbligatorie
+            sections_detail: Lista di SectionAnalysis con min_depth_in_at
+
         Returns:
             UsabilityIndex popolato
         """
         weights = self.config.usability_weights
         index = UsabilityIndex()
-        
         index.base_score = weights.base_score
-        
-        # Penalità profondità
-        if reachability.avg_depth > weights.ideal_depth:
-            excess_depth = reachability.avg_depth - weights.ideal_depth
-            index.depth_penalty = excess_depth * weights.penalty_per_depth_level
-        
-        # Penalità link rotti
+
+        # Score conformità normativa
+        if total_required_sections > 0:
+            index.conformity_score = (sections_in_at / total_required_sections) * 100
+        else:
+            index.conformity_score = 0.0
+
+        # Profondità media delle sezioni obbligatorie trovate in AT
+        depths = [
+            s.min_depth_in_at
+            for s in sections_detail
+            if s.found_in_at and s.min_depth_in_at is not None
+        ]
+        avg_section_depth = sum(depths) / len(depths) if depths else 0.0
+
+        if avg_section_depth > weights.ideal_depth:
+            excess = avg_section_depth - weights.ideal_depth
+            index.depth_penalty = excess * weights.penalty_per_depth_level
+
         index.broken_penalty = quality.broken_percent * weights.penalty_per_broken_percent
-        
-        # Penalità trasparenza sommersa
         index.hidden_penalty = hidden_sections_count * weights.penalty_per_hidden_section
-        
-        # Bonus
-        if all_sections_in_at:
-            index.bonus = weights.bonus_all_sections_in_at
-        
-        # Calcola punteggio finale
-        index.score = (
+        index.missing_penalty = missing_sections_count * weights.penalty_per_missing_section
+
+        # Bonus graduale proporzionale alla copertura AT
+        if total_required_sections > 0:
+            index.bonus = (sections_in_at / total_required_sections) * weights.bonus_all_sections_in_at
+        else:
+            index.bonus = 0.0
+
+        index.usability_score = (
             index.base_score
             - index.depth_penalty
             - index.broken_penalty
             - index.hidden_penalty
+            - index.missing_penalty
             + index.bonus
         )
-        
-        # Applica floor/ceiling
+        index.usability_score = max(weights.min_score, min(index.usability_score, weights.max_score))
+
+        # Score finale ponderato
+        index.score = (
+            index.conformity_score * weights.weight_conformity +
+            index.usability_score * weights.weight_usability
+        )
         index.score = max(weights.min_score, min(index.score, weights.max_score))
-        
-        # Rating testuale
+
         index.rating = UsabilityIndex.get_rating(index.score)
-        
         return index
 
 
 def calculate_all_metrics(
     tree_data: Dict[str, Any],
     hidden_sections_count: int = 0,
-    all_sections_in_at: bool = False,
+    missing_sections_count: int = 0,
+    sections_in_at: int = 0,
+    total_required_sections: int = 23,
+    sections_detail: list = None,
     config: OrchestratorConfig = None
 ) -> tuple:
     """
     Funzione di convenienza per calcolare tutte le metriche.
-    
+
     Returns:
         Tupla (reachability, quality, usability)
     """
     calculator = MetricsCalculator(config)
-    
+
     reachability = calculator.calculate_reachability(tree_data)
     quality = calculator.calculate_quality(tree_data)
     usability = calculator.calculate_usability_index(
         reachability,
         quality,
         hidden_sections_count,
-        all_sections_in_at
+        missing_sections_count,
+        sections_in_at,
+        total_required_sections,
+        sections_detail or [],
     )
-    
+
     return reachability, quality, usability

@@ -88,16 +88,18 @@ class Analyzer:
         
         for url, info in tree.items():
             url_lower = url.lower()
-            
-            # Controlla se l'URL contiene una delle keyword
+            title_lower = (info.get('title') or '').lower()
+
+            # Controlla se l'URL o il titolo della pagina contiene una delle keyword
             for keyword in keywords:
-                if keyword.lower() in url_lower:
+                kw = keyword.lower()
+                if kw in url_lower or kw in title_lower:
                     matching_urls.append(url)
                     depth = info.get('depth', 0)
-                    
+
                     if min_depth is None or depth < min_depth:
                         min_depth = depth
-                    
+
                     break  # Evita duplicati per lo stesso URL
         
         found = len(matching_urls) > 0
@@ -283,7 +285,10 @@ class Analyzer:
                 result.reachability_at,
                 result.quality_at,
                 result.transparency.sections_only_in_main,
-                result.transparency.all_sections_in_at
+                result.transparency.sections_missing,
+                result.transparency.sections_in_at,
+                result.transparency.total_required_sections,
+                result.transparency.sections,
             )
 
         # Analisi privacy (post-processing)

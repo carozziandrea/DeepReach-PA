@@ -109,13 +109,16 @@ class TransparencyMetrics:
 class UsabilityIndex:
     """Indice di usabilità calcolato."""
 
-    score: float = 0.0  # Punteggio finale 0-100
+    score: float = 0.0
+    conformity_score: float = 0.0
+    usability_score: float = 0.0
 
     # Dettaglio componenti
     base_score: float = 100.0
     depth_penalty: float = 0.0
     broken_penalty: float = 0.0
     hidden_penalty: float = 0.0
+    missing_penalty: float = 0.0
     bonus: float = 0.0
 
     # Giudizio testuale

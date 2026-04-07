@@ -136,7 +136,7 @@ class SiteMapSpider(scrapy.Spider):
         'CONCURRENT_REQUESTS_PER_DOMAIN': 4,  # Max 4 per dominio
         'DOWNLOAD_DELAY': 0.5,  # Ridotto delay
         'HTTPCACHE_ENABLED': False,
-        'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'USER_AGENT': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:124.0) Gecko/20100101 Firefox/124.0',
         'DOWNLOAD_TIMEOUT': 60,
         'RETRY_TIMES': 3,
         'LOG_LEVEL': 'INFO',
@@ -486,9 +486,9 @@ class SiteMapSpider(scrapy.Spider):
                     self.stats_blacklist_skipped += 1
                     continue
 
-                # Check file by extension
-                is_doc = any(url_lower.endswith(ext) for ext in doc_ext)
-                is_media = any(url_lower.endswith(ext) for ext in media_ext)
+                # Check file by extension (endswith OR present anywhere in URL path)
+                is_doc = any(url_lower.endswith(ext) or (ext + '/') in url_lower or (ext + '?') in url_lower for ext in doc_ext)
+                is_media = any(url_lower.endswith(ext) or (ext + '/') in url_lower for ext in media_ext)
 
                 # Check file by URL pattern (download links without extension)
                 is_download_url = any(pattern in url_lower for pattern in download_patterns)
