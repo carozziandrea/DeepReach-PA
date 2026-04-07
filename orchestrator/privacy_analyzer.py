@@ -176,7 +176,18 @@ class PrivacyAnalyzer:
                 continue
 
             if node_data.get("status") == "file":
-                file_type = node_data.get("file_type", "").lower()
+                # Recupera file_type gestendo eventuali valori None
+                file_type = (node_data.get("file_type") or "").lower()
+                url_lower = url.lower()
+                
+                # Se il tipo è mancante, prova a dedurlo dall'URL (es. .pdf/ o .pdf?)
+                if not file_type:
+                    for ext in self.config.scannable_extensions:
+                        if (ext + "/") in url_lower or (ext + "?") in url_lower:
+                            file_type = ext
+                            node_data["file_type"] = ext  # Aggiorna il nodo per i passaggi success
+                            break
+                
                 # Usa le estensioni configurate
                 if any(file_type.endswith(ext) or ext in file_type for ext in self.config.scannable_extensions):
                     file_urls.append((url, node_data))
@@ -201,7 +212,7 @@ class PrivacyAnalyzer:
             if "privacy_risk" in node_data and node_data.get("privacy_scanned"):
                 continue
 
-            result = self._download_and_scan(url, node_data.get("file_type", ""))
+            result = self._download_and_scan(url, (node_data.get("file_type") or ""))
 
             if result.error:
                 self.summary.files_failed += 1
