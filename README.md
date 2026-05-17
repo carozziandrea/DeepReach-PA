@@ -1,10 +1,5 @@
 # Costruzione Automatica di Sovrastrutture Logiche per la Trasparenza nei Siti della Pubblica Amministrazione
 
-**Autore:** Andrea Carozzi (Matricola: 896142)
-
-Progetto di tirocinio interno legato alla tesi di Laurea in Informatica presso l'Università degli Studi di Milano.
-
-
 ## Obiettivo del Progetto
 
 Il progetto mira a sviluppare un software in grado di analizzare i siti web della Pubblica Amministrazione italiana (PA).
@@ -205,16 +200,3 @@ Il report privacy include:
 - **Tipologie Dati**: Email, telefoni, indirizzi, codici fiscali rilevati
 - **Dettaglio per URL**: Lista completa degli URL con dati sensibili
 - **Suggerimenti**: Raccomandazioni per la remediation
-
-
-## Stato del Progetto
-
-**Completato**
-
-Sono state implementate tutte le funzionalità previste:
-- Crawling automatico con Scrapy + Playwright
-- Analisi trasparenza e rilevamento "trasparenza sommersa"
-- Analisi privacy su pagine HTML e PDF
-- Generazione report PDF/TXT/JSON
-- Visualizzazione grafi interattivi
-- Modalità batch per analisi multipla
